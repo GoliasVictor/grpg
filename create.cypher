@@ -1,0 +1,7 @@
+CREATE NODE TABLE Node(label STRING, id INT64, PRIMARY KEY (id))
+
+Node: MISC
+Scalar:
+	INTEIRO,
+	STRING 
+	DATA
