@@ -1,3 +1,5 @@
 fastapi==0.115.12
 scalar-fastapi==1.0.3
 pandas==2.2.3
+kuzu==0.10.1
+pyarrow==20.0.0

@@ -8,6 +8,7 @@ from scalar_fastapi import get_scalar_api_reference
 import kuzu
 from enum import Enum, IntEnum
 import math 
+from fastapi.middleware.cors import CORSMiddleware
 
 db = kuzu.Database("./demo_db")
 conn = kuzu.Connection(db)
@@ -18,7 +19,18 @@ conn.execute(
         CREATE REL TABLE IF NOT EXISTS Triple(FROM Node TO Node, id INT64);
     """
 )
+origins = [
+    "http://localhost:5173",
+]
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class NodeResponse(BaseModel):
     node_id: int
@@ -71,9 +83,9 @@ def post_triple(triple: Triple):
 
 @app.get("/node", tags=["node"])
 def get_node() -> list[Node]:
-    nodes = conn.execute("MATCH (n:Node) RETURN n.id AS id, n.label as label;").get_as_arrow()
+    nodes = conn.execute("MATCH (n:Node) RETURN n.id AS id, n.label as label;").get_as_df()
     print(nodes)
-    return [Node(node_id = node["id"], label = node["label"]) for index, node in nodes.iterrows()]
+    return [Node(node_id = node["id"], label = node["label"] if isinstance(node["label"], str) else "") for index, node in nodes.iterrows()]
 
 @app.post("/table", tags=["node"])
 def table(filter: Filter) -> list[Node]:
@@ -88,11 +100,11 @@ def table(filter: Filter) -> list[Node]:
     else:
         rel_str = f"<-{triple_str}-"
     print(f"""MATCH (n:Node) {rel_str} () RETURN DISTINCT n.id AS id, n.label as label;""")
-    nodes = conn.execute(f"""MATCH (n:Node) {rel_str} () RETURN DISTINCT n.id AS id, n.label as label;""", params).get_as_arrow()
+    nodes = conn.execute(f"""MATCH (n:Node) {rel_str} () RETURN DISTINCT n.id AS id, n.label as label;""", params).get_as_df()
     print(nodes)
     print(help(nodes))
 
-    return [Node(node_id = node["id"], label = node["label"]) for index, node in nodes.iterrows()]
+    return [Node(node_id = node["id"], label = node["label"] if not node["label"].isna() else "") for index, node in nodes.iterrows()]
 
 def common_parameters():
     return "carlos"
