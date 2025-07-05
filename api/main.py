@@ -43,13 +43,22 @@ class Filter(BaseModel):
     predicate: Union[int, None]
     direction: GraphDirection
 
+class TableRow(BaseModel):
+    node_id: int
+    label: Union[str, None]
+    pid: Union[int, None]
+
 class Node(BaseModel):
     node_id: int
     label: Union[str, None]
 class Out(BaseModel):
     item_id: str
     q: str
-
+class Predicate(BaseModel):
+    id: int
+    label: Union[str, None]
+class PostPredicate(BaseModel):
+    label: str
 @app.get("/scalar", include_in_schema=False)
 async def scalar_html():
     return get_scalar_api_reference(
@@ -81,6 +90,30 @@ def post_triple(triple: Triple):
         parameters={"id1": triple.subject_id, "pid":  triple.predicate_id, "id2":  triple.object_id}
     )
 
+@app.get("/predicates", tags=["predicates"])
+def get_predicates() -> list[Predicate]:
+    predicates = conn.execute("MATCH (p:Predicate) RETURN p.id AS id, p.label as label;").get_as_df()
+    print(predicates)
+    return [
+        Predicate(
+            id = predicate["id"],
+            label = predicate["label"] if isinstance(predicate["label"], str) else "") 
+        for _, predicate in predicates.iterrows()]
+
+@app.post("/predicate", tags=["predicates"])
+def post_predicate(predicate: PostPredicate) -> Predicate :
+
+    last_id = conn.execute("MATCH (p:Predicate) RETURN MAX(p.id) AS id;").get_next()[0]
+    if last_id is None:
+        last_id = 0
+    
+    id = conn.execute(
+        """CREATE (p:Predicate {label : $label, id: $id})
+        RETURN p.id;""",
+        parameters={"label": predicate.label, "id": last_id + 1}
+    ).get_next()[0]
+
+    return Predicate(id = id, label = predicate.label)
 @app.get("/node", tags=["node"])
 def get_node() -> list[Node]:
     nodes = conn.execute("MATCH (n:Node) RETURN n.id AS id, n.label as label;").get_as_df()
@@ -88,7 +121,7 @@ def get_node() -> list[Node]:
     return [Node(node_id = node["id"], label = node["label"] if isinstance(node["label"], str) else "") for index, node in nodes.iterrows()]
 
 @app.post("/table", tags=["node"])
-def table(filter: Filter) -> list[Node]:
+def table(filter: Filter) -> list[TableRow]:
     params = {}
     if filter.predicate == None:
         triple_str = "[t:Triple]"
@@ -100,11 +133,17 @@ def table(filter: Filter) -> list[Node]:
     else:
         rel_str = f"<-{triple_str}-"
     print(f"""MATCH (n:Node) {rel_str} () RETURN DISTINCT n.id AS id, n.label as label;""")
-    nodes = conn.execute(f"""MATCH (n:Node) {rel_str} () RETURN DISTINCT n.id AS id, n.label as label;""", params).get_as_df()
+    nodes = conn.execute(f"""MATCH (n:Node) {rel_str} () RETURN DISTINCT n.id AS id,t.id as pid, n.label as label;""", params).get_as_df()
     print(nodes)
-    print(help(nodes))
 
-    return [Node(node_id = node["id"], label = node["label"] if not node["label"].isna() else "") for index, node in nodes.iterrows()]
+    return [
+        TableRow(
+            node_id = node["id"], 
+            label = node["label"] if isinstance(node["label"], str) else "",
+            pid = node["pid"]
+        ) 
+        for index, node in nodes.iterrows()
+    ]
 
 def common_parameters():
     return "carlos"

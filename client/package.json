@@ -7,7 +7,7 @@
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
-    "generate-specs": "openapi-typescript ./src/lib/api/specs.json --properties-required-by-default true  >| ./src/lib/api/specs.d.ts"
+    "generate-specs": "openapi-typescript ./app/lib/api/specs.json --properties-required-by-default true  >| ./app/lib/api/specs.d.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
