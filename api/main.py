@@ -132,8 +132,14 @@ def table(filter: Filter) -> list[TableRow]:
         rel_str = f"-{triple_str}->"
     else:
         rel_str = f"<-{triple_str}-"
-    print(f"""MATCH (n:Node) {rel_str} () RETURN DISTINCT n.id AS id, n.label as label;""")
-    nodes = conn.execute(f"""MATCH (n:Node) {rel_str} () RETURN DISTINCT n.id AS id,t.id as pid, n.label as label;""", params).get_as_df()
+    node_str = ""
+    if filter.node_id is not None:
+        node_str = "(:Node { id: $node_id })"
+        params["node_id"] = filter.node_id
+    else:
+        node_str = "(:Node)"
+    print(f"""MATCH (n:Node) {rel_str} {node_str} RETURN DISTINCT n.id AS id, n.label as label;""")
+    nodes = conn.execute(f"""MATCH (n:Node) {rel_str} {node_str} RETURN DISTINCT n.id AS id,t.id as pid, n.label as label;""", params).get_as_df()
     print(nodes)
 
     return [
