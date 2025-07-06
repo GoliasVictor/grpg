@@ -6,7 +6,8 @@ import { Maximize2, Minimize2 } from "lucide-react";
 import type { Route } from "./+types/home"
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { client, usePredicateQuery } from "~/hooks/queries";
+import { client, useNodesQuery, usePredicateQuery } from "~/hooks/queries";
+import { NodesTable } from "./nodes-table";
 
 
 export function meta({ }: Route.MetaArgs) {
@@ -20,7 +21,7 @@ export default function Home(this: any) {
   const [isIn, setIsIn] = useState(false);
   const [nodeId, setNodeId] = useState(1);
   const { getPredicate } = usePredicateQuery();
-
+  const {nodes} = useNodesQuery();
   const collumns : {
     id: number,
     filter: {
@@ -43,7 +44,7 @@ export default function Home(this: any) {
       }
     }
   ];
-  const values = [1, 2, 3, 4,5,6,7 ]
+  const values = nodes.map((n) => n.node_id);
   const tableQuery = useQuery({
     queryKey: ['table', { isIn: isIn, values: values }],
     queryFn: async () => (
@@ -82,33 +83,9 @@ export default function Home(this: any) {
         </span>
       </div>
       <div className="w-min flex-row flex" >
-        <Table className="w-min">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Node</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tableData?.map((r) => (
-              <TableRow key={r.node_id.toString()}>
-                {
-                  r?.row?.columns.map((c) => (
-                    <TableCell key={c.id} className="font-medium">
-                      {
-                        c.values.map((d: any) => (
-                          <span onClick={() => setNodeId(d)} className="border p-1 rounded-md text-xs">
-                            #{d}
-                          </span>
-                        ))
-                      }
-
-                    </TableCell>
-                  ))
-                }
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div>
+          <NodesTable data={tableData} columnsDef={collumns} />
+        </div>
       </div>
 
     </div>
