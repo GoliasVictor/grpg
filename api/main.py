@@ -1,4 +1,4 @@
-from typing import Literal, Union
+from typing import Literal, Optional, Union
 
 from fastapi import FastAPI
 from typing import Annotated
@@ -150,6 +150,74 @@ def table(filter: Filter) -> list[TableRow]:
         ) 
         for index, node in nodes.iterrows()
     ]
+
+example_row_request = {
+	"node_id": 1,
+	"collumns": [
+		{
+			"id": 0,
+			"filter": {
+				"direction": "in",
+				"predicate_id": 1, 
+			}
+		}
+	]
+}
+example_response = {
+    "columns": [
+        { 
+            "id": 0,
+            "values": [
+                1, 2, 6
+            ]
+        }
+    ]
+}
+class ColumnFilter(BaseModel):
+    direction: Optional[Literal["in", "out"]]
+    predicate_id: int 
+class ColumnDefinition(BaseModel):
+    id: int
+    filter: ColumnFilter
+class GetRow(BaseModel):
+    node_id: int
+    columns: list[ColumnDefinition]
+
+class RowColumnResponse(BaseModel):
+    id: int
+    values: list[int]
+
+class RowResponse(BaseModel):
+    columns: list[RowColumnResponse]
+
+@app.post("/row", tags=["node"])
+def table(parms: GetRow) -> RowResponse:
+    result = {"columns": []}
+    node_id = parms.node_id
+
+    for col in parms.columns:
+        direction = col.filter.direction
+        predicate_id = col.filter.predicate_id
+
+        if direction == "out":
+            rel_str = "-[t:Triple {id: $pid}]->"
+        else:
+            rel_str = "<-[t:Triple {id: $pid}]-"
+
+        query = f"""
+            MATCH (n:Node {{id: $node_id}}) {rel_str} (m:Node)
+            RETURN DISTINCT m.id AS id
+        """
+        params = {"node_id": node_id, "pid": predicate_id}
+        df = conn.execute(query, params).get_as_df()
+        values = df["id"].tolist() if "id" in df else []
+
+        result["columns"].append({
+            "id": col.id,
+            "values": values
+        })
+
+    return RowResponse(columns=[RowColumnResponse(**col) for col in result["columns"]])
 
 def common_parameters():
     return "carlos"

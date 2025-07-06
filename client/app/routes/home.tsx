@@ -1,34 +1,15 @@
 import { Button } from "~/components/ui/button"
 import {
-  QueryClient,
-  QueryClientProvider,
   useQuery,
 } from '@tanstack/react-query'
-import createClient from "openapi-fetch";
-import type { paths } from "~/lib/api/specs.d.ts"; 
-
+import { Maximize2, Minimize2 } from "lucide-react";
 import type { Route } from "./+types/home"
-import { Fragment, useState } from "react";
-import type { D } from "node_modules/react-router/dist/development/route-data-D7Xbr_Ww.mjs";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-const client = createClient<paths>({ baseUrl: "http://127.0.0.1:8000/" });
+import { useState } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { client, usePredicateQuery } from "~/hooks/queries";
 
-function usePredicate() {
-  const predicatesQuery = useQuery({
-      queryKey: ['predicates'],
-      queryFn: async () => (await client.GET("/predicates"))?.data,
-      //refetchInterval: 1500,
-  }) 
-  
-  return {
-    ...predicatesQuery,
-    predicates: predicatesQuery.data || [],
-    getPredicate: (id: number) => {
-      return predicatesQuery.data?.find((p) => p.id === id); 
-    }
-  };
-}
-export function meta({}: Route.MetaArgs) {
+
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: "New React Router App" },
     { name: "description", content: "Welcome to React Router!" },
@@ -36,92 +17,100 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home(this: any) {
-  const { isPending, error, data } = useQuery({
-    queryKey: ['repoData'],
-    queryFn: async () => (await client.GET("/node"))?.data,
+  const [isIn, setIsIn] = useState(false);
+  const [nodeId, setNodeId] = useState(1);
+  const { getPredicate } = usePredicateQuery();
+
+  const collumns : {
+    id: number,
+    filter: {
+      direction: "in" | "out" | null;
+      predicate_id: number
+    }
+  }[] = [
+    {
+      id: 1,
+      filter: {
+        predicate_id: 1,
+        direction: isIn ? "in" : "out",
+      }
+    },
+    {
+      id: 2,
+      filter: {
+        predicate_id: 2,
+        direction: isIn ? "in" : "out",
+      }
+    }
+  ];
+  const values = [1, 2, 3, 4,5,6,7 ]
+  const tableQuery = useQuery({
+    queryKey: ['table', { isIn: isIn, values: values }],
+    queryFn: async () => (
+      await Promise.all(
+        values.map(async (c) => ({
+            node_id: c, row: (
+              (await client.POST("/row", {
+                body: {
+                  node_id: c,
+                  columns: collumns
+                }
+              }
+              ))?.data
+            )
+          })
+        )
+      )
+    )
     //refetchInterval: 1500,
   })
-  const [isIn, setIsIn] = useState(false);
-  const [nodeId , setNodeId] = useState(1);
-  const { predicates, getPredicate, ...predicatesQuery } = usePredicate();
-  const tableQuery = useQuery({
-      queryKey: ['table', {isIn : isIn, nodeId: nodeId}],
-      queryFn: async () => (await client.POST("/table", {
-        body: {
-          node_id: nodeId,
-          predicate: null,
-          direction: isIn ? "in" : "out",
-        }
-      }))?.data,
-      //refetchInterval: 1500,
-  }) 
-  if (predicatesQuery.error) return 'An error has occurred: ' + predicatesQuery.error
-  if (predicatesQuery.isLoading) return 'Loading...';
-  if (!predicatesQuery.data) return 'No data found';
+
 
   if (tableQuery.error) return 'An error has occurred: ' + tableQuery.error
   if (tableQuery.isLoading) return 'Loading...';
   if (!tableQuery.data) return 'No data found';
-
-  if (isPending) return 'Loading...'
-  if (!data) return 'No data found'
-  if (error) return 'An error has occurred: ' + error.message
   const tableData = tableQuery.data;
+  console.log("tableData", tableData.map((r) => r.row?.columns));
   return (
-    <div className="flex h-screen w-screen items-center justify-center content-center">
-      <Button onClick={() => setIsIn(!isIn)}>
-        {isIn ? "To In" : "To Out"}
-      </Button>
-      <span>
-        {nodeId}
-      </span>
+    <div className="flex flex-col h-screen w-screen items-center justify-center">
+      <div>
+        <Button variant="secondary" size="icon" onClick={() => setIsIn(!isIn)}>
+          {isIn ? <Minimize2 /> : <Maximize2 />}
+        </Button>
+        <span>
+          {nodeId}
+        </span>
+      </div>
       <div className="w-min flex-row flex" >
         <Table className="w-min">
           <TableHeader>
             <TableRow>
-              <TableHead>Id</TableHead>
-              <TableHead>Label</TableHead>
+              <TableHead>Node</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((d) => (
-              <TableRow key={d.node_id}>
-                    <TableCell key={d.node_id} className="font-medium">
-                      <Button variant="link" className="p-0" onClick={() => {
-                        setNodeId(d.node_id);
-                        setIsIn(false);
-                  }}>    
-                    #{d.node_id}
-                  </Button>
+            {tableData?.map((r) => (
+              <TableRow key={r.node_id.toString()}>
+                {
+                  r?.row?.columns.map((c) => (
+                    <TableCell key={c.id} className="font-medium">
+                      {
+                        c.values.map((d: any) => (
+                          <span onClick={() => setNodeId(d)} className="border p-1 rounded-md text-xs">
+                            #{d}
+                          </span>
+                        ))
+                      }
+
                     </TableCell>
-                    <TableCell>{d.label}</TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-        <Table className="w-min">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Id</TableHead>
-              <TableHead>Label</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-              { tableData.map((d) => (
-                <TableRow key={d.node_id.toString() + d.pid!.toString()}>
-                    <TableCell key={d.node_id} className="font-medium">
-                      #{d.node_id}
-                  </TableCell>
-                  <TableCell>
-                    {getPredicate(d.pid!)?.label ?? 0}
-                  </TableCell>
-                    <TableCell>{d.label}</TableCell>
-                </TableRow>
-              ))}
+                  ))
+                }
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
-        
+
     </div>
   )
 }

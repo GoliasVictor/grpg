@@ -1,41 +1,15 @@
 import { Button } from "~/components/ui/button"
 import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from '@tanstack/react-query'
-import createClient from "openapi-fetch";
-import type { paths } from "~/lib/api/specs.d.ts";
-import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card"
 import type { Route } from "./+types/node"
-import { Fragment, useState } from "react";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { NavLink } from "react-router";
-const client = createClient<paths>({ baseUrl: "http://127.0.0.1:8000/" });
+import { usePredicateQuery, useTableInOutQuery } from "~/hooks/queries";
 
-function usePredicate() {
-  const predicatesQuery = useQuery({
-    queryKey: ['predicates'],
-    queryFn: async () => (await client.GET("/predicates"))?.data,
-    //refetchInterval: 1500,
-  })
-
-  return {
-    ...predicatesQuery,
-    predicates: predicatesQuery.data || [],
-    getPredicate: (id: number) => {
-      return predicatesQuery.data?.find((p) => p.id === id);
-    }
-  };
-}
 
 
 export function meta({ }: Route.MetaArgs) {
@@ -91,41 +65,10 @@ function GTable({ data, getPredicate, isIn }: { data: any[], getPredicate: (id: 
 export default function Home(this: any, {
   params
 }: Route.ComponentProps) {
-  const { isPending, error, data } = useQuery({
-    queryKey: ['repoData'],
-    queryFn: async () => (await client.GET("/node"))?.data,
-    //refetchInterval: 1500,
-  })
-  console.log("props", params.id);
-  const [isIn, setIsIn] = useState(false);
+  const { getPredicate } = usePredicateQuery();
   const nodeId = parseInt(params.id);
-  console.log("nodeId", nodeId);
-  const { predicates, getPredicate, ...predicatesQuery } = usePredicate();
-  const inTableQuery = useQuery({
-    queryKey: ['table', { isIn: "in", nodeId: nodeId }],
-    queryFn: async () => (await client.POST("/table", {
-      body: {
-        node_id: nodeId,
-        predicate: null,
-        direction: "in",
-      }
-    }))?.data,
-    //refetchInterval: 1500,
-  })
-  const outTableQuery = useQuery({
-    queryKey: ['table', { isIn: "out", nodeId: nodeId }],
-    queryFn: async () => (await client.POST("/table", {
-      body: {
-        node_id: nodeId,
-        predicate: null,
-        direction: "out",
-      }
-    }))?.data,
-    //refetchInterval: 1500,
-  })
-  if (predicatesQuery.error) return 'An error has occurred: ' + predicatesQuery.error
-  if (predicatesQuery.isLoading) return 'Loading...';
-  if (!predicatesQuery.data) return 'No data found';
+  const inTableQuery = useTableInOutQuery(true, nodeId);
+  const outTableQuery = useTableInOutQuery(false, nodeId);
 
   if (inTableQuery.error) return 'An error has occurred: ' + inTableQuery.error
   if (inTableQuery.isLoading) return 'Loading...';
@@ -135,9 +78,7 @@ export default function Home(this: any, {
   if (outTableQuery.isLoading) return 'Loading...';
   if (!outTableQuery.data) return 'No data found';
 
-  if (isPending) return 'Loading...'
-  if (!data) return 'No data found'
-  if (error) return 'An error has occurred: ' + error.message
+
   const inTableData = inTableQuery.data;
   const outTableData = outTableQuery.data;
   return (
