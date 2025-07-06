@@ -18,35 +18,34 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 export default function Home(this: any) {
-  const [isIn, setIsIn] = useState(false);
   const [nodeId, setNodeId] = useState(1);
   const { getPredicate } = usePredicateQuery();
   const {nodes} = useNodesQuery();
-  const collumns : {
+  const [collumns, setCollumns] = useState<{
     id: number,
     filter: {
       direction: "in" | "out" | null;
       predicate_id: number
     }
-  }[] = [
+  }[]> ([
     {
       id: 1,
       filter: {
         predicate_id: 1,
-        direction: isIn ? "in" : "out",
+        direction:  "out",
       }
     },
     {
       id: 2,
       filter: {
         predicate_id: 2,
-        direction: isIn ? "in" : "out",
+        direction: "in",
       }
     }
-  ];
+  ]);
   const values = nodes.map((n) => n.node_id);
   const tableQuery = useQuery({
-    queryKey: ['table', { isIn: isIn, values: values }],
+    queryKey: ['table', {  values: values , columns: collumns}],
     queryFn: async () => (
       await Promise.all(
         values.map(async (c) => ({
@@ -71,20 +70,29 @@ export default function Home(this: any) {
   if (tableQuery.isLoading) return 'Loading...';
   if (!tableQuery.data) return 'No data found';
   const tableData = tableQuery.data;
-  console.log("tableData", tableData.map((r) => r.row?.columns));
   return (
     <div className="flex flex-col h-screen w-screen items-center justify-center">
-      <div>
-        <Button variant="secondary" size="icon" onClick={() => setIsIn(!isIn)}>
-          {isIn ? <Minimize2 /> : <Maximize2 />}
-        </Button>
-        <span>
-          {nodeId}
-        </span>
-      </div>
       <div className="w-min flex-row flex" >
         <div>
-          <NodesTable data={tableData} columnsDef={collumns} />
+          <NodesTable data={tableData} columnsDef={collumns} onChangeColumn={(id, newPid, newInOut) => {
+            setCollumns(
+              collumns.map((c) => {
+                if (c.id === id) {
+                console.log(c.filter.direction)
+
+                  return {
+                    ...c,
+                    filter: {
+                      ...c.filter,
+                      predicate_id: newPid || c.filter.predicate_id,
+                      direction: (newInOut == null? c.filter.direction : (newInOut == "any" ? null : newInOut) ) 
+                    }
+                  }
+                }
+                return c;
+              })   
+            )
+          } }/>
         </div>
       </div>
 

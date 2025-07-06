@@ -198,8 +198,9 @@ def table(parms: GetRow) -> RowResponse:
     for col in parms.columns:
         direction = col.filter.direction
         predicate_id = col.filter.predicate_id
-
-        if direction == "out":
+        if direction == None:
+            rel_str = "-[t:Triple {id: $pid}]-"
+        elif direction == "out":
             rel_str = "-[t:Triple {id: $pid}]->"
         else:
             rel_str = "<-[t:Triple {id: $pid}]-"

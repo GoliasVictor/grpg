@@ -1,0 +1,75 @@
+import type { Column } from "@tanstack/react-table"
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronsUpDown, EyeOff, Minus } from "lucide-react"
+
+import { cn } from "~/lib/utils"
+import { Button } from "~/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu"
+
+interface DataTableColumnHeaderProps<TData, TValue>
+  extends React.HTMLAttributes<HTMLDivElement> {
+  column: Column<TData, TValue>
+  title: string,
+  isIn: boolean | null
+  onChangeDirection: (direction: "in" | "out" | "any") => void
+}
+
+export function DataTableColumnHeader<TData, TValue>({
+  column,
+  title,
+  className,
+  isIn,
+  onChangeDirection
+
+}: DataTableColumnHeaderProps<TData, TValue>) {
+  //   if (!column.getCanSort()) {
+  //     return <div className={cn(className)}>{title}</div>
+  //   }
+
+  return (
+    <div className={cn("flex items-center", className)}>
+      <Button variant="ghost">{title}</Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="data-[state=open]:bg-accent  h-8"
+            >
+
+              {isIn === null ? (
+                <Minus />
+              ) : isIn ? (
+                <ArrowLeft />
+              ) : (
+                <ArrowRight />
+
+              )}
+            </Button>
+          </div>
+
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={() => onChangeDirection("in")}>
+            <ArrowLeft />
+            In
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onChangeDirection("out")}>
+            <ArrowRight />
+            Out
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onChangeDirection("any")}>
+            <Minus />
+            Any
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  )
+}

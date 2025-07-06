@@ -2,8 +2,10 @@
 
 import * as React from "react"
 import type {
+  CellContext,
   ColumnDef,
   ColumnFiltersState,
+  HeaderContext,
   Row,
   SortingState,
   VisibilityState
@@ -39,6 +41,7 @@ import {
   TableRow,
 } from "~/components/ui/table"
 import { useNodesQuery, usePredicateQuery } from "~/hooks/queries"
+import { DataTableColumnHeader } from "./data-table-column-header"
 
 
 export type Payment = {
@@ -58,7 +61,7 @@ type Column = {
     predicate_id: number;
   };
 };
-export function NodesTable( {data, columnsDef}: { data: Payment[], columnsDef: Column[]} ) {
+export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment[], columnsDef: Column[], onChangeColumn: (id: number, newPid: number | null, newInOut: "in" | "out" | "any" | null) => void} ) {
   const {getNode } = useNodesQuery();
   const {getPredicate} = usePredicateQuery();
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -68,7 +71,6 @@ export function NodesTable( {data, columnsDef}: { data: Payment[], columnsDef: C
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
-  console.log(columnsDef)
   const columns: ColumnDef<Payment>[] = [
     {
       id: "select",
@@ -101,7 +103,17 @@ export function NodesTable( {data, columnsDef}: { data: Payment[], columnsDef: C
     },
     ...columnsDef.map((c) => ({
       id: `row.columns.${c.id}.values`,
-      header: () => <div className="capitalize">{getPredicate(c.filter.predicate_id)?.label || ""}</div>,
+
+      header: ({ column }: HeaderContext<Payment, unknown>) => (
+        <DataTableColumnHeader
+          column={column}
+          title={getPredicate(c.filter.predicate_id)?.label || ""}
+          isIn={c.filter.direction == null ? null : c.filter.direction == "in"}
+          onChangeDirection={(direction) => {
+            onChangeColumn(c.id,null, direction)
+          }}
+        />
+      ),
       enableHiding: false,
       cell: ({ row }: { row: Row<Payment> }) => {
         const values = row.original.row?.columns.filter(d => d.id == c.id)[0].values as number[]
@@ -116,7 +128,7 @@ export function NodesTable( {data, columnsDef}: { data: Payment[], columnsDef: C
       id: "actions",
       enableHiding: false,
       header: () => <Button variant="ghost" size="icon"className="text-right"><Plus/></Button >,
-      cell: ({ row }) => {
+      cell: ({ row}) => {
         const payment = row.original
 
         return (
@@ -143,7 +155,6 @@ export function NodesTable( {data, columnsDef}: { data: Payment[], columnsDef: C
       },
     },
   ]
-  console.log("columns", columns)
 
   const table = useReactTable({
     data,
