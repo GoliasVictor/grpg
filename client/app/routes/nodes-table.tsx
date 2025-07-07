@@ -40,9 +40,16 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table"
-import { useNodesQuery, usePredicateQuery } from "~/hooks/queries"
+import { useNodesCreateMutation, useNodesDeleteMutation, useNodesQuery, usePredicateQuery } from "~/hooks/queries"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import NodeBadge from "./node-badge"
+
+// Extend TableMeta to include nodeDeleteMutation
+declare module '@tanstack/react-table' {
+  interface TableMeta<TData extends unknown> {
+    nodeDeleteMutation?: ReturnType<typeof useNodesDeleteMutation>;
+  }
+}
 
 
 export type Payment = {
@@ -69,6 +76,8 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
+  const nodeDeleteMutation = useNodesDeleteMutation();
+  const novoMutation = useNodesCreateMutation();
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
@@ -76,6 +85,7 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
     {
       id: "select",
       header: ({ table }) => (
+        <div className="flex items-center">
         <Checkbox
           checked={
             table.getIsAllPageRowsSelected() ||
@@ -83,14 +93,15 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
-        />
+        /></div>
       ),
       cell: ({ row }) => (
+        <div className="flex items-center">
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
-        />
+        /></div>
       ),
       enableSorting: false,
       enableHiding: false,
@@ -98,8 +109,10 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
     {
       accessorKey: "node_id",
       header: "Node",
-      cell: ({ row }) => (
-        <div>#{row.original.node_id} {getNode(row.original.node_id)?.label}</div>
+      cell: ({ row }) => (<div className="flex gap-2">
+          <NodeBadge key={row.original.node_id} nodeId={row.original.node_id} getNode={getNode} />
+        </div>
+        
       ),
     },
     ...columnsDef.map((c) => ({
@@ -129,9 +142,10 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
       id: "actions",
       enableHiding: false,
       header: () => <Button variant="ghost" size="icon"className="text-right"><Plus/></Button >,
-      cell: ({ row}) => {
+      cell: ({ row, table}) => {
         const payment = row.original
-
+        const nodeDeleteMutation = table.options.meta?.nodeDeleteMutation!;
+        
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -143,13 +157,12 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(payment.node_id.toString())}
+                onClick={() => {
+                  nodeDeleteMutation.mutate({ nodeId: payment.node_id })
+                }}
               >
-                Copy payment ID
+                Apagar
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>View customer</DropdownMenuItem>
-              <DropdownMenuItem>View payment details</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -174,6 +187,9 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
       columnVisibility,
       rowSelection,
     },
+    meta: {
+      nodeDeleteMutation
+    }
   })
 
   return (
@@ -253,6 +269,14 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
                 </TableCell>
               </TableRow>
             )}
+            <TableRow>
+                <TableCell colSpan={columns.length} className="text-center">
+                  <Button className="w-full h-full text-left left" onClick={() => novoMutation.mutate({label: " "})} variant="ghost">
+                  <Plus/>
+                    Novo no
+                  </Button>
+                </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </div>

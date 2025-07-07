@@ -68,10 +68,13 @@ async def scalar_html():
 
 @app.post("/node", tags=["node"])
 def post_node(label : str) -> NodeResponse:
+    last_id = conn.execute("MATCH (n:Node) RETURN MAX(n.id) AS id;").get_next()[0]
+    if last_id is None:
+        last_id = 0
     id = conn.execute(
-        """CREATE (n:Node {label : $label})
+        """CREATE (n:Node {id: $id, label : $label})
         RETURN n.id;""",
-        parameters={"label": label}
+        parameters={"label": label, "id": last_id + 1}
     ).get_next()[0]
 
     return NodeResponse(node_id = id)
@@ -83,6 +86,14 @@ def put_node(node_id: int, label: str) -> Node:
         parameters={"id": node_id, "label": label}
     ).get_next()[0]
     return Node(node_id = node_id, label = new_label)
+
+@app.delete("/node/{node_id}", tags=["node"])
+def delete_node(node_id: int) -> NodeResponse:
+    conn.execute(
+        """MATCH (n:Node {id: $id}) DETACH DELETE n;""",
+        parameters={"id": node_id}
+    )
+    return NodeResponse(node_id = node_id)
 class Triple(BaseModel): 
     subject_id: int 
     predicate_id: int

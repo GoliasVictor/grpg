@@ -52,11 +52,11 @@ export default function NodeBadge({
           className="border w-min rounded px-1 text-xs p-1 py-1 h-min"
         />
       ) : (<span
-      className="text-center align-middle border p-1 rounded-md text-xs"
+      className="min-w-10 inline-block text-center align-middle border p-1 rounded-md text-xs"
       onClick={handleDoubleClick}
       style={{ cursor: "pointer" }}
     >
-        {getNode(nodeId)?.label}
+        {getNode(nodeId)?.label?.trim() || <span className="text-gray-500">Vazio</span>} 
       
     </span >)
   );

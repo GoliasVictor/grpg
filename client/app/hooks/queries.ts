@@ -74,3 +74,42 @@ export function useNodesUpdateMutation() {
   })
   return mutatation
 }
+
+export function useNodesCreateMutation() {
+  const queryClient = useQueryClient();
+  const mutatation = useMutation({
+    mutationFn: async (data: { label: string }) => {
+      queryClient.cancelQueries({ queryKey: ['nodes'] });
+      await client.POST("/node", {
+        params: {
+          query: data
+        } 
+      })
+    },
+    onSuccess: () => {
+      queryClient.refetchQueries({ queryKey: ['nodes'] });
+      queryClient.invalidateQueries({ queryKey: ['home-table'] });
+
+    },
+  })
+  return mutatation
+}
+
+export function useNodesDeleteMutation() {
+  const queryClient = useQueryClient();
+  const mutatation = useMutation({
+    mutationFn: async (data: { nodeId: number }) => {
+      queryClient.cancelQueries({ queryKey: ['nodes'] });
+      await client.DELETE("/node/{node_id}", {
+        params: {
+          path: { node_id: data.nodeId }
+        }
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['nodes'] });
+      queryClient.invalidateQueries({ queryKey: ['home-table'] });
+    }
+  })
+  return mutatation
+}
