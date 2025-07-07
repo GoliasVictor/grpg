@@ -50,13 +50,13 @@ class TableRow(BaseModel):
 
 class Node(BaseModel):
     node_id: int
-    label: Union[str, None]
+    label: str
 class Out(BaseModel):
     item_id: str
     q: str
 class Predicate(BaseModel):
     id: int
-    label: Union[str, None]
+    label: str
 class PostPredicate(BaseModel):
     label: str
 @app.get("/scalar", include_in_schema=False)
@@ -75,6 +75,14 @@ def post_node(label : str) -> NodeResponse:
     ).get_next()[0]
 
     return NodeResponse(node_id = id)
+
+@app.put("/node/{node_id}", tags=["node"])
+def put_node(node_id: int, label: str) -> Node:
+    new_label = conn.execute(
+        """MATCH (n:Node {id: $id}) SET n.label = $label RETURN n.label;""",
+        parameters={"id": node_id, "label": label}
+    ).get_next()[0]
+    return Node(node_id = node_id, label = new_label)
 class Triple(BaseModel): 
     subject_id: int 
     predicate_id: int

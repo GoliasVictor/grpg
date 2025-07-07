@@ -42,6 +42,7 @@ import {
 } from "~/components/ui/table"
 import { useNodesQuery, usePredicateQuery } from "~/hooks/queries"
 import { DataTableColumnHeader } from "./data-table-column-header"
+import NodeBadge from "./node-badge"
 
 
 export type Payment = {
@@ -119,7 +120,7 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
         const values = row.original.row?.columns.filter(d => d.id == c.id)[0].values as number[]
         return (
           <div className="max-w-60 min-w-40 flex flex-wrap gap-1 overflow-x-scroll">
-            {values.map((a) => <span className=" text-center align-middle border p-1 rounded-md text-xs"> #{a} {getNode(a)?.label} </span>)}
+            {values.map((a) => <NodeBadge key={a} nodeId={a} getNode={getNode} />)}
           </div>
         )
       },

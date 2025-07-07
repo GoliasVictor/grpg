@@ -45,7 +45,7 @@ export default function Home(this: any) {
   ]);
   const values = nodes.map((n) => n.node_id);
   const tableQuery = useQuery({
-    queryKey: ['table', {  values: values , columns: collumns}],
+    queryKey: ['home-table', {  values: values , columns: collumns}],
     queryFn: async () => (
       await Promise.all(
         values.map(async (c) => ({

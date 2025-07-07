@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import createClient from "openapi-fetch";
 import type { paths } from "~/lib/api/specs";
 
@@ -42,10 +42,35 @@ export function useTableInOutQuery(isIn: boolean, nodeId: number) {
       body: {
         node_id: nodeId,
         predicate: null,
-        direction: isIn ? "in": "out",
+        direction: isIn ? "in" : "out",
       }
     }))?.data,
     //refetchInterval: 1500,
   })
   return query;
+}
+
+type Node = {
+  node_id: number;
+  label: string;
+}
+export function useNodesUpdateMutation() {
+  const queryClient = useQueryClient();
+  const mutatation = useMutation({
+    mutationFn: async (data: { nodeId: number, label: string }) => {
+      queryClient.cancelQueries({ queryKey: ['nodes'] });
+      await client.PUT("/node/{node_id}", {
+        params: {
+          path: { node_id: data.nodeId },
+          query: { label: data.label }
+        }
+      })
+      console.log(queryClient.getQueriesData({ queryKey: [] }));
+    },
+    onSuccess: () => {
+        
+      queryClient.invalidateQueries({ queryKey: ['nodes'] });
+    },
+  })
+  return mutatation
 }
