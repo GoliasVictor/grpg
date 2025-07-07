@@ -40,9 +40,11 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table"
-import { useNodesCreateMutation, useNodesDeleteMutation, useNodesQuery, usePredicateQuery } from "~/hooks/queries"
+import { useNodesCreateMutation, useNodesDeleteMutation, useNodesQuery, usePredicateQuery, useTripleCreateMutation, useTripleDeleteMutation } from "~/hooks/queries"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import NodeBadge from "./node-badge"
+import NodeBadgeAdd from "./node-badge-add"
+import NodeBadgeTriple from "./node-badge-triple"
 
 // Extend TableMeta to include nodeDeleteMutation
 declare module '@tanstack/react-table' {
@@ -76,8 +78,13 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
+  
   const nodeDeleteMutation = useNodesDeleteMutation();
+  const tripleMutation = useTripleCreateMutation();
   const novoMutation = useNodesCreateMutation();
+  const deleteTripleMutation = useTripleDeleteMutation();
+
+
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
@@ -130,10 +137,40 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
       ),
       enableHiding: false,
       cell: ({ row }: { row: Row<Payment> }) => {
+        
         const values = row.original.row?.columns.filter(d => d.id == c.id)[0].values as number[]
         return (
           <div className="max-w-60 min-w-40 flex flex-wrap gap-1 overflow-x-scroll">
-            {values.map((a) => <NodeBadge key={a} nodeId={a} getNode={getNode} />)}
+            {values.map((a) => <NodeBadgeTriple
+              key={a} nodeId={a}
+              getNode={getNode}
+              onDelete={
+                () => {
+                  deleteTripleMutation.mutate({
+                    subjectId: c.filter.direction == "in" ? a : row.original.node_id,
+                    predicateId: c.filter.predicate_id,
+                    objectId: c.filter.direction == "in" ? row.original.node_id : a
+                  });
+                }
+              }
+            />)}
+            <NodeBadgeAdd onChoice={(anotherId) => {
+              if (c.filter.direction == "in") {
+                tripleMutation.mutate({
+                  subjectId: anotherId,
+                  predicateId: c.filter.predicate_id,
+                  objectId: row.original.node_id
+                });
+              }
+              else if (c.filter.direction == "out") {
+                tripleMutation.mutate({
+                  subjectId: row.original.node_id,
+                  predicateId: c.filter.predicate_id,
+                  objectId: anotherId,
+                });
+
+              }
+            }}></NodeBadgeAdd>
           </div>
         )
       },

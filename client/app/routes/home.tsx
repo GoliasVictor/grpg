@@ -67,7 +67,7 @@ export default function Home(this: any) {
 
 
   if (tableQuery.error) return 'An error has occurred: ' + tableQuery.error
-  if (tableQuery.isPending) return 'Loading... asdas';
+  if (tableQuery.isLoading) return 'Loading...';
   if (!tableQuery.data) return 'No data found';
   const tableData = tableQuery.data;
   return (

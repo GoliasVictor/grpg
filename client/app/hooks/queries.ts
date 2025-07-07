@@ -24,7 +24,7 @@ export function useNodesQuery() {
   const query = useQuery({
     queryKey: ['nodes'],
     queryFn: async () => (await client.GET("/node"))?.data,
-    //refetchInterval: 1500,
+    staleTime: Infinity,
   })
   return {
     ...query,
@@ -112,4 +112,44 @@ export function useNodesDeleteMutation() {
     }
   })
   return mutatation
+}
+
+export function useTripleCreateMutation() {
+  const queryClient = useQueryClient();
+  const mutatation = useMutation({
+    mutationFn: async (data: { objectId: number, predicateId: number, subjectId: number }) => {
+      queryClient.cancelQueries({ queryKey: ['home-table'] });
+      await client.POST("/triple", {
+        body: {
+          object_id: data.objectId,
+          predicate_id: data.predicateId,
+          subject_id: data.subjectId
+        }
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['home-table'] });
+    },
+  })
+  return mutatation;
+}
+
+export function useTripleDeleteMutation() {
+  const queryClient = useQueryClient();
+  const mutatation = useMutation({
+    mutationFn: async (data: { objectId: number, predicateId: number, subjectId: number }) => {
+      queryClient.cancelQueries({ queryKey: ['home-table'] });
+      await client.DELETE("/triple", {
+        body: {
+          object_id: data.objectId,
+          predicate_id: data.predicateId,
+          subject_id: data.subjectId
+        }
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['home-table'] });
+    },
+  })
+  return mutatation;
 }

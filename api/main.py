@@ -108,6 +108,13 @@ def post_triple(triple: Triple):
         RETURN t.Id;""",
         parameters={"id1": triple.subject_id, "pid":  triple.predicate_id, "id2":  triple.object_id}
     )
+@app.delete("/triple", tags=["triple"])
+def delete_triple(triple: Triple):
+    conn.execute(
+        """MATCH (n1:Node {id : $id1})-[t:Triple {id: $pid}]->(n2:Node {id: $id2})
+        DELETE t;""",
+        parameters={"id1": triple.subject_id, "pid":  triple.predicate_id, "id2":  triple.object_id}
+    )
 
 @app.get("/predicates", tags=["predicates"])
 def get_predicates() -> list[Predicate]:
