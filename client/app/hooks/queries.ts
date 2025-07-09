@@ -8,7 +8,7 @@ export function usePredicateQuery() {
   const predicatesQuery = useQuery({
     queryKey: ['predicates'],
     queryFn: async () => (await client.GET("/predicates"))?.data,
-    //refetchInterval: 1500,
+    staleTime: Infinity,
   })
 
   return {

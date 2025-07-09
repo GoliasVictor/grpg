@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { Input } from "~/components/ui/input";
-import { client, useNodesUpdateMutation } from "~/hooks/queries";
+import { client, useNodesQuery, useNodesUpdateMutation } from "~/hooks/queries";
 
 export default function NodeBadge({
   nodeId,
-  getNode,
 }: {
   nodeId: number;
-  getNode: (id: number) => { label: string | null } | undefined;
 }) {
   const [editMode, setEditMode] = useState(false);
+  const { getNode } = useNodesQuery();
   const [label, setLabel] = useState(getNode(nodeId)?.label ?? "");
   const mutation = useNodesUpdateMutation();
   async function save(new_label: string) {
@@ -20,6 +19,7 @@ export default function NodeBadge({
   }
   const handleDoubleClick = () => {
     setEditMode(true);
+    setLabel(label); 
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,5 +1,5 @@
 import type { Column } from "@tanstack/react-table"
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronsUpDown, EyeOff, Minus } from "lucide-react"
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronsUpDown, EyeOff, Minus, X } from "lucide-react"
 
 import { cn } from "~/lib/utils"
 import { Button } from "~/components/ui/button"
@@ -17,6 +17,7 @@ interface DataTableColumnHeaderProps<TData, TValue>
   title: string,
   isIn: boolean | null
   onChangeDirection: (direction: "in" | "out" | "any") => void
+  onDeleteColumn: () => void
 }
 
 export function DataTableColumnHeader<TData, TValue>({
@@ -24,7 +25,8 @@ export function DataTableColumnHeader<TData, TValue>({
   title,
   className,
   isIn,
-  onChangeDirection
+  onChangeDirection,
+  onDeleteColumn
 
 }: DataTableColumnHeaderProps<TData, TValue>) {
   //   if (!column.getCanSort()) {
@@ -70,6 +72,10 @@ export function DataTableColumnHeader<TData, TValue>({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <Button variant="ghost" size="icon" className="transition-colors duration-200 hover:text-white cursor-pointer 
+      hover:bg-destructive focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 h-8" onClick={onDeleteColumn}>
+        <X/>
+      </Button>
     </div>
   )
 }

@@ -40,11 +40,25 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog"
+import { Label } from "~/components/ui/label"
+
 import { useNodesCreateMutation, useNodesDeleteMutation, useNodesQuery, usePredicateQuery, useTripleCreateMutation, useTripleDeleteMutation } from "~/hooks/queries"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import NodeBadge from "./node-badge"
 import NodeBadgeAdd from "./node-badge-add"
 import NodeBadgeTriple from "./node-badge-triple"
+import PredicatesComboBox from "./predicates-combo-box"
+import { NewColumnDialog } from "./new-column-dialog"
 
 // Extend TableMeta to include nodeDeleteMutation
 declare module '@tanstack/react-table' {
@@ -71,7 +85,23 @@ type Column = {
     predicate_id: number;
   };
 };
-export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment[], columnsDef: Column[], onChangeColumn: (id: number, newPid: number | null, newInOut: "in" | "out" | "any" | null) => void} ) {
+export type NodesTableProps = {
+  data: Payment[];
+  columnsDef: Column[];
+  onChangeColumn: (
+    id: number,
+    newPid: number | null,
+    newInOut: "in" | "out" | "any" | null
+  ) => void;
+
+  onNewColumn: (
+    newPid: number,
+    newInOut: "in" | "out" | "any" 
+  ) => void;
+  onDeleteColumn: (id: number) => void;
+};
+
+export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onDeleteColumn}: NodesTableProps ) {
   const {getNode } = useNodesQuery();
   const {getPredicate} = usePredicateQuery();
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -117,19 +147,21 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
       accessorKey: "node_id",
       header: "Node",
       cell: ({ row }) => (<div className="flex gap-2">
-          <NodeBadge key={row.original.node_id} nodeId={row.original.node_id} getNode={getNode} />
+          <NodeBadge key={row.original.node_id} nodeId={row.original.node_id} />
         </div>
         
       ),
     },
     ...columnsDef.map((c) => ({
-      id: `row.columns.${c.id}.values`,
-
+      id: `d-columns.${c.id}`,
       header: ({ column }: HeaderContext<Payment, unknown>) => (
         <DataTableColumnHeader
           column={column}
           title={getPredicate(c.filter.predicate_id)?.label || ""}
           isIn={c.filter.direction == null ? null : c.filter.direction == "in"}
+          onDeleteColumn={() => {
+            onDeleteColumn(c.id)
+          }}
           onChangeDirection={(direction) => {
             onChangeColumn(c.id,null, direction)
           }}
@@ -178,7 +210,9 @@ export function NodesTable({ data, columnsDef, onChangeColumn }: { data: Payment
     {
       id: "actions",
       enableHiding: false,
-      header: () => <Button variant="ghost" size="icon"className="text-right"><Plus/></Button >,
+      header: () => (<NewColumnDialog onAddColumn={(predicate, direction) => {
+        onNewColumn(predicate || 0, direction);
+      }}/>),
       cell: ({ row, table}) => {
         const payment = row.original
         const nodeDeleteMutation = table.options.meta?.nodeDeleteMutation!;

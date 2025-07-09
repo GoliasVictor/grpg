@@ -18,21 +18,19 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 export default function Home(this: any) {
-  const [nodeId, setNodeId] = useState(1);
-  const { getPredicate } = usePredicateQuery();
-  const {nodes} = useNodesQuery();
+  const { nodes } = useNodesQuery();
   const [collumns, setCollumns] = useState<{
     id: number,
     filter: {
       direction: "in" | "out" | null;
       predicate_id: number
     }
-  }[]> ([
+  }[]>([
     {
       id: 1,
       filter: {
         predicate_id: 1,
-        direction:  "out",
+        direction: "out",
       }
     },
     {
@@ -45,20 +43,20 @@ export default function Home(this: any) {
   ]);
   const values = nodes.map((n) => n.node_id);
   const tableQuery = useQuery({
-    queryKey: ['home-table', {  values: values , columns: collumns}],
+    queryKey: ['home-table', { values: values, columns: collumns }],
     queryFn: async () => (
       await Promise.all(
         values.map(async (c) => ({
-            node_id: c, row: (
-              (await client.POST("/row", {
-                body: {
-                  node_id: c,
-                  columns: collumns
-                }
+          node_id: c, row: (
+            (await client.POST("/row", {
+              body: {
+                node_id: c,
+                columns: collumns
               }
-              ))?.data
-            )
-          })
+            }
+            ))?.data
+          )
+        })
         )
       )
     )
@@ -74,25 +72,41 @@ export default function Home(this: any) {
     <div className="flex flex-col h-screen w-screen items-center justify-center">
       <div className="w-min flex-row flex" >
         <div>
-          <NodesTable data={tableData} columnsDef={collumns} onChangeColumn={(id, newPid, newInOut) => {
-            setCollumns(
-              collumns.map((c) => {
-                if (c.id === id) {
-                console.log(c.filter.direction)
+          <NodesTable data={tableData} columnsDef={collumns} onNewColumn={(newPid, newInOut) => {
+            setCollumns([
+              ...collumns,
+              {
+                id: collumns.length + 1,
+                filter: {
+                  predicate_id: newPid ?? 1,
+                  direction: (newInOut == "any" ? null : newInOut)
+                }
+              }
+            ])
+          }}
+            onChangeColumn={(id, newPid, newInOut) => {
+              setCollumns(
+                collumns.map((c) => {
+                  if (c.id === id) {
+                    console.log(c.filter.direction)
 
-                  return {
-                    ...c,
-                    filter: {
-                      ...c.filter,
-                      predicate_id: newPid || c.filter.predicate_id,
-                      direction: (newInOut == null? c.filter.direction : (newInOut == "any" ? null : newInOut) ) 
+                    return {
+                      ...c,
+                      filter: {
+                        ...c.filter,
+                        predicate_id: newPid || c.filter.predicate_id,
+                        direction: (newInOut == null ? c.filter.direction : (newInOut == "any" ? null : newInOut))
+                      }
                     }
                   }
-                }
-                return c;
-              })   
-            )
-          } }/>
+                  return c;
+                })
+              )
+            }}
+            onDeleteColumn={(id) => {
+              setCollumns(collumns.filter(c => c.id !== id));
+            }} 
+          />
         </div>
       </div>
 
