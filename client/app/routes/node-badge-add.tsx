@@ -26,14 +26,14 @@ import { useMemo } from "react"
 export default function ExampleCombobox({onChoice}:{onChoice : (nodeId : number) => void}) {
   const [open, setOpen] = React.useState(false)
   const { nodes, getNode } = useNodesQuery();
-  
+
   const frameworks = useMemo(() => {
-     return nodes.map((n) => ({ 
+     return nodes.map((n) => ({
       value: n.node_id.toString(),
       label: n.label || "No label",
     }))
   }, [nodes])
-  
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -47,7 +47,7 @@ export default function ExampleCombobox({onChoice}:{onChoice : (nodeId : number)
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command filter={
-          (v, search, _keywords) => {            
+          (v, search, _keywords) => {
             return getNode(parseInt(v))?.label.toLocaleLowerCase().includes(search.toLowerCase())  ? 1 : 0
           }
         }>

@@ -41,7 +41,7 @@ class GraphDirection(str, Enum):
 class Filter(BaseModel):
     node_id: Union[int, None]
     predicate: Union[int, None]
-    direction: GraphDirection
+    direction: Optional[GraphDirection]
 
 class TableRow(BaseModel):
     node_id: int
@@ -156,8 +156,10 @@ def table(filter: Filter) -> list[TableRow]:
         params["pid"] = filter.predicate
     if filter.direction == "out":
         rel_str = f"-{triple_str}->"
-    else:
+    elif filter.direction == "in":
         rel_str = f"<-{triple_str}-"
+    else:
+        rel_str = f"-{triple_str}-"
     node_str = ""
     if filter.node_id is not None:
         node_str = "(:Node { id: $node_id })"

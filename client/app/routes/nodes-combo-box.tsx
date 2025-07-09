@@ -1,5 +1,5 @@
 import { ComboBox } from "~/components/combo-box";
-import { usePredicateQuery } from "~/hooks/queries";
+import { useNodesQuery, usePredicateQuery } from "~/hooks/queries";
 
 type Props = {
   value: number | null,
@@ -7,27 +7,29 @@ type Props = {
   id?: string
 }
 
-export default function PredicatesComboBox( { value, id, onChange}: Props ) {
-  const { data } = usePredicateQuery();
+export default function NodesComboBox( { value, id, onChange}: Props ) {
+  const { data } = useNodesQuery();
   function handleChange(idStr: string) {
     if (idStr.trim() == "")
       return onChange(null);
     onChange(Number(idStr));
   }
 
-  const ids = data?.map(e => e.id.toString()) || [];
+  const ids = [...data?.map(e => e.node_id.toString()) || [], ""];
 
   return (<ComboBox
     value={value?.toString() ?? ""}
     valueToView={(v) => {
+      if (v.trim() == "")
+        return "Qualquer conceito";
       const id = Number(v);
-      const predicate = data?.find(p => p.id === id);
-      return predicate != undefined  ? predicate.label : "Erro!";
+      const element = data?.find(p => p.node_id === id);
+      return element != undefined  ? element.label : "Erro!";
     }}
     onChange={handleChange}
     values={ids}
     disabled={ids.length == 0}
-    placeholder="Qualquer relação"
+    placeholder="Qualquer conceito"
     id={id}
     className="w-min"
   />)

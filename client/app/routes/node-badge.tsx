@@ -12,20 +12,19 @@ export default function NodeBadge({
   const [label, setLabel] = useState(getNode(nodeId)?.label ?? "");
   const mutation = useNodesUpdateMutation();
   async function save(new_label: string) {
-    console.log("Saving label:", new_label);  
     await mutation.mutateAsync({
       nodeId, label: new_label
     });
   }
   const handleDoubleClick = () => {
     setEditMode(true);
-    setLabel(label); 
+    setLabel(label);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLabel(e.target.value);
   };
-  
+
   const handleBlur = () => {
     save(label)
     setEditMode(false);
@@ -56,8 +55,8 @@ export default function NodeBadge({
       onClick={handleDoubleClick}
       style={{ cursor: "pointer" }}
     >
-        {getNode(nodeId)?.label?.trim() || <span className="text-gray-500">Vazio</span>} 
-      
+        {getNode(nodeId)?.label?.trim() || <span className="text-gray-500">Vazio</span>}
+
     </span >)
   );
 }

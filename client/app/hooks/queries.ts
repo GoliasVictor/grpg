@@ -8,7 +8,7 @@ export function usePredicateQuery() {
   const predicatesQuery = useQuery({
     queryKey: ['predicates'],
     queryFn: async () => (await client.GET("/predicates"))?.data,
-    staleTime: Infinity,
+    staleTime: Infinity
   })
 
   return {
@@ -68,7 +68,7 @@ export function useNodesUpdateMutation() {
       console.log(queryClient.getQueriesData({ queryKey: [] }));
     },
     onSuccess: () => {
-        
+
       queryClient.invalidateQueries({ queryKey: ['nodes'] });
     },
   })
@@ -83,7 +83,7 @@ export function useNodesCreateMutation() {
       await client.POST("/node", {
         params: {
           query: data
-        } 
+        }
       })
     },
     onSuccess: () => {

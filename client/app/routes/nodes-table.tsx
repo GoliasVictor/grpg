@@ -59,6 +59,7 @@ import NodeBadgeAdd from "./node-badge-add"
 import NodeBadgeTriple from "./node-badge-triple"
 import PredicatesComboBox from "./predicates-combo-box"
 import { NewColumnDialog } from "./new-column-dialog"
+import TableFilterHead from "./table-filter-head"
 
 // Extend TableMeta to include nodeDeleteMutation
 declare module '@tanstack/react-table' {
@@ -96,19 +97,21 @@ export type NodesTableProps = {
 
   onNewColumn: (
     newPid: number,
-    newInOut: "in" | "out" | "any" 
+    newInOut: "in" | "out" | "any"
   ) => void;
   onDeleteColumn: (id: number) => void;
+  filter: any;
+  setFilter: (filter: any) => void;
 };
 
-export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onDeleteColumn}: NodesTableProps ) {
+export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onDeleteColumn, filter, setFilter}: NodesTableProps ) {
   const {getNode } = useNodesQuery();
   const {getPredicate} = usePredicateQuery();
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
-  
+
   const nodeDeleteMutation = useNodesDeleteMutation();
   const tripleMutation = useTripleCreateMutation();
   const novoMutation = useNodesCreateMutation();
@@ -149,7 +152,7 @@ export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onD
       cell: ({ row }) => (<div className="flex gap-2">
           <NodeBadge key={row.original.node_id} nodeId={row.original.node_id} />
         </div>
-        
+
       ),
     },
     ...columnsDef.map((c) => ({
@@ -169,10 +172,10 @@ export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onD
       ),
       enableHiding: false,
       cell: ({ row }: { row: Row<Payment> }) => {
-        
+
         const values = row.original.row?.columns.filter(d => d.id == c.id)[0].values as number[]
         return (
-          <div className="max-w-60 min-w-40 flex flex-wrap gap-1 overflow-x-scroll">
+          <div className="max-w-100 min-w-40 flex flex-wrap gap-1 overflow-x-scroll">
             {values.map((a) => <NodeBadgeTriple
               key={a} nodeId={a}
               getNode={getNode}
@@ -216,7 +219,7 @@ export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onD
       cell: ({ row, table}) => {
         const payment = row.original
         const nodeDeleteMutation = table.options.meta?.nodeDeleteMutation!;
-        
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -262,36 +265,10 @@ export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onD
       nodeDeleteMutation
     }
   })
-
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <TableFilterHead filter={filter} onChangeFilter={setFilter} />
       </div>
       <div className="rounded-md border">
         <Table>
