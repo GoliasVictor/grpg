@@ -5,7 +5,7 @@ import {
 } from '@tanstack/react-query'
 import { Maximize2, Minimize2 } from "lucide-react";
 import type { Route } from "./+types/home"
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { client, useNodesQuery, usePredicateQuery } from "~/hooks/queries";
 import { NodesTable } from "./nodes-table";
@@ -29,14 +29,13 @@ export async function clientLoader({ }: Route.LoaderArgs) {
   }
 }
 
-export default function Home(this: any, {loaderData }: Route.ComponentProps) {
+export default function Home(this: any, { loaderData }: Route.ComponentProps) {
   const { nodes } = useNodesQuery();
   const [filter, setFilter] = useState<Filter>({
     direction: "any",
     anotherNode: null,
     predicate: null,
   });
-
   const [collumns, setCollumns] = useState<{
     id: number,
     filter: {
@@ -61,14 +60,16 @@ export default function Home(this: any, {loaderData }: Route.ComponentProps) {
           node_id: filter.anotherNode ?? null
         }
       }))?.data
-    }
+    },
+    //refetchInterval: 1000,
+    select: (data) => new Set((data ?? []).map(d => d.node_id))
   });
 
   let values;
   if (filter.anotherNode == null && filter.direction == "any" && filter.predicate == null) {
     values = nodes.map(n => n.node_id);
   } else {
-    values = [...new Set((filterdNodes.data ?? []).map(d => d.node_id))]
+    values = [...filterdNodes.data || []];
   }
   const tableQuery = useQuery({
     queryKey: ['home-table', { values: values, columns: collumns }],
@@ -90,12 +91,47 @@ export default function Home(this: any, {loaderData }: Route.ComponentProps) {
     )
     //refetchInterval: 1500,
   })
+  const [lastData, setLastData] = useState<typeof tableQuery.data | null>(null);
+  const handleNewColumn = useCallback((newPid: number, newInOut: "in" | "out" | "any") => {
+    setCollumns([
+      ...collumns,
+      {
+        id: collumns.length + 1,
+        filter: {
+          predicate_id: newPid ?? 1,
+          direction: (newInOut == "any" ? null : newInOut)
+        }
+      }
+    ])
+  }, [collumns]);
+  const handleChangeColumn = useCallback((id: number, newPid: number | null, newInOut: "in" | "out" | "any" | null) => {
+    setCollumns(
+      collumns.map((c) => {
+        if (c.id === id) {
 
-
+          return {
+            ...c,
+            filter: {
+              ...c.filter,
+              predicate_id: newPid || c.filter.predicate_id,
+              direction: (newInOut == null ? c.filter.direction : (newInOut == "any" ? null : newInOut))
+            }
+          }
+        }
+        return c;
+      })
+    )
+  }, [collumns]);
+  const handleDeleteColumn = useCallback((id: number) => {
+      setCollumns(collumns.filter(c => c.id !== id));
+  }, [collumns]);
   if (tableQuery.error) return 'An error has occurred: ' + tableQuery.error
-  if (tableQuery.isLoading) return 'Loading...';
-  if (!tableQuery.data) return 'No data found';
-  const tableData = tableQuery.data;
+  if (tableQuery.isLoading && lastData == null) return 'Loading...';
+  const tableData = (tableQuery.data ?? lastData) ?? [];
+  if (!Object.is(tableQuery.data, lastData) && !tableQuery.isPending  ) {
+    setLastData(tableQuery.data);
+  }
+
   return (
     <div className="flex flex-col h-screen w-screen items-center">
       <div className="w-min flex-row flex" >
@@ -105,39 +141,9 @@ export default function Home(this: any, {loaderData }: Route.ComponentProps) {
             columnsDef={collumns}
             filter={filter}
             setFilter={setFilter}
-            onNewColumn={(newPid, newInOut) => {
-              setCollumns([
-                ...collumns,
-                {
-                  id: collumns.length + 1,
-                  filter: {
-                    predicate_id: newPid ?? 1,
-                    direction: (newInOut == "any" ? null : newInOut)
-                  }
-                }
-              ])
-            }}
-            onChangeColumn={(id, newPid, newInOut) => {
-              setCollumns(
-                collumns.map((c) => {
-                  if (c.id === id) {
-
-                    return {
-                      ...c,
-                      filter: {
-                        ...c.filter,
-                        predicate_id: newPid || c.filter.predicate_id,
-                        direction: (newInOut == null ? c.filter.direction : (newInOut == "any" ? null : newInOut))
-                      }
-                    }
-                  }
-                  return c;
-                })
-              )
-            }}
-            onDeleteColumn={(id) => {
-              setCollumns(collumns.filter(c => c.id !== id));
-            }}
+            onNewColumn={handleNewColumn}
+            onChangeColumn={handleChangeColumn}
+            onDeleteColumn={handleDeleteColumn}
           />
         </div>
       </div>

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Input } from "~/components/ui/input";
 import { client, useNodesQuery, useNodesUpdateMutation } from "~/hooks/queries";
 
-export default function NodeBadge({
+const NodeBadge = memo(function ({
   nodeId,
 }: {
   nodeId: number;
@@ -23,6 +23,8 @@ export default function NodeBadge({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLabel(e.target.value);
+    save(e.target.value)
+
   };
 
   const handleBlur = () => {
@@ -41,22 +43,24 @@ export default function NodeBadge({
 
   return (
     editMode ? (
-        <Input
-          type="text"
-          value={label}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          autoFocus
-          className="border w-min rounded px-1 text-xs p-1 py-1 h-min"
-        />
-      ) : (<span
+      <Input
+        type="text"
+        value={label}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        autoFocus
+        className="border w-min rounded px-1 text-xs p-1 py-1 h-min"
+      />
+    ) : (<span
       className="min-w-10 inline-block text-center align-middle border p-1 rounded-md text-xs"
       onClick={handleDoubleClick}
       style={{ cursor: "pointer" }}
     >
-        {getNode(nodeId)?.label?.trim() || <span className="text-gray-500">Vazio</span>}
+      {getNode(nodeId)?.label?.trim() || <span className="text-gray-500">Vazio</span>}
 
     </span >)
   );
-}
+});
+
+export default NodeBadge;

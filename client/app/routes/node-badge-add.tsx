@@ -19,13 +19,15 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover"
 import { useNodesQuery } from "~/hooks/queries"
-import { useMemo } from "react"
+import { memo, useMemo } from "react"
 
 
 
-export default function ExampleCombobox({onChoice}:{onChoice : (nodeId : number) => void}) {
+const NodeBadgeAdd = memo(function NodeBadgeAdd({onChoice}:{onChoice : (nodeId : number) => void}) {
   const [open, setOpen] = React.useState(false)
-  const { nodes, getNode } = useNodesQuery();
+  const { nodes, getNode } = useNodesQuery({
+    subscribed: false,
+  });
 
   const frameworks = useMemo(() => {
      return nodes.map((n) => ({
@@ -73,4 +75,6 @@ export default function ExampleCombobox({onChoice}:{onChoice : (nodeId : number)
       </PopoverContent>
     </Popover>
   )
-}
+})
+
+export default NodeBadgeAdd

@@ -10,7 +10,7 @@ import { NavLink } from "react-router";
 import { useNodesQuery } from "~/hooks/queries";
 
 function NTable({ data}: { data: any[]}) {
-  
+
   return (<Table className="w-min">
     <TableHeader>
       <TableRow>
@@ -40,7 +40,7 @@ function NTable({ data}: { data: any[]}) {
 export default function Home() {
   const nodesQuery = useNodesQuery();
 
-  if (nodesQuery.isPending) return 'Loading...'
+  if (nodesQuery.isLoading) return 'Loading...'
   if (!nodesQuery.data) return 'No data found'
   if (nodesQuery.error) return 'An error has occurred: ' + nodesQuery.error.message
 

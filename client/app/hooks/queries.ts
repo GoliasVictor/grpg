@@ -20,11 +20,12 @@ export function usePredicateQuery() {
   };
 }
 
-export function useNodesQuery() {
+export function useNodesQuery({subscribed} : {subscribed?: boolean} = { }) {
   const query = useQuery({
     queryKey: ['nodes'],
     queryFn: async () => (await client.GET("/node"))?.data,
     staleTime: Infinity,
+    subscribed: subscribed,
   })
   return {
     ...query,
@@ -35,6 +36,19 @@ export function useNodesQuery() {
   }
 }
 
+
+export function useOneNodeQuery(id : number) {
+  return useQuery({
+    queryKey: ['nodes'],
+    queryFn: async () => (await client.GET("/node"))?.data,
+    staleTime: Infinity,
+    select: (data) => {
+      return data?.find((n: { node_id: number }) => n.node_id === id);
+    }
+  })
+
+
+}
 export function useTableInOutQuery(isIn: boolean, nodeId: number) {
   const query = useQuery({
     queryKey: ['table', { isIn: "in", nodeId: nodeId }],
@@ -65,7 +79,6 @@ export function useNodesUpdateMutation() {
           query: { label: data.label }
         }
       })
-      console.log(queryClient.getQueriesData({ queryKey: [] }));
     },
     onSuccess: () => {
 

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import type {
+  Cell,
   CellContext,
   ColumnDef,
   ColumnFiltersState,
@@ -53,7 +54,7 @@ import {
 import { Label } from "~/components/ui/label"
 
 import { useNodesCreateMutation, useNodesDeleteMutation, useNodesQuery, usePredicateQuery, useTripleCreateMutation, useTripleDeleteMutation } from "~/hooks/queries"
-import { DataTableColumnHeader } from "./data-table-column-header"
+import DataTableColumnHeader  from "./data-table-column-header"
 import NodeBadge from "./node-badge"
 import NodeBadgeAdd from "./node-badge-add"
 import NodeBadgeTriple from "./node-badge-triple"
@@ -65,6 +66,7 @@ import TableFilterHead from "./table-filter-head"
 declare module '@tanstack/react-table' {
   interface TableMeta<TData extends unknown> {
     nodeDeleteMutation?: ReturnType<typeof useNodesDeleteMutation>;
+    getPredicate: ReturnType<typeof usePredicateQuery>["getPredicate"];
   }
 }
 
@@ -104,14 +106,76 @@ export type NodesTableProps = {
   setFilter: (filter: any) => void;
 };
 
-export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onDeleteColumn, filter, setFilter}: NodesTableProps ) {
+
+const NodeTableCell = React.memo(function ({ cell }: { cell: Cell<Payment, unknown> }) {
+  return <TableCell>
+    {flexRender(
+      cell.column.columnDef.cell,
+      cell.getContext()
+    )}
+  </TableCell>;
+})
+const NodeTableRow = React.memo(function ({ row } : { row: Row<Payment>}) {
+  return (
+  <TableRow
+      data-state={row.getIsSelected() && "selected"}
+    >
+      {row.getVisibleCells().map((cell) => (
+        <NodeTableCell key={cell.id} cell={cell} />
+      ))}
+    </TableRow>
+  )
+})
+
+const DynamicColumnCell = React.memo(({ cellData, deleteTripleMutation, tripleMutation, column, getNode, values }:  {
+  tripleMutation: ReturnType<typeof useTripleCreateMutation>,
+  deleteTripleMutation: ReturnType<typeof useTripleDeleteMutation>,
+  values : number[],
+  cellData: Payment,
+  column: any,
+  getNode: ReturnType<typeof useNodesQuery>["getNode"]
+}) => {
+  const handleChoice = React.useCallback(
+    (anotherId : number) => {
+      if (column.filter.direction == "in") {
+        tripleMutation.mutate({
+          subjectId: anotherId,
+          predicateId: column.filter.predicate_id,
+          objectId: cellData.node_id
+        });
+      }
+      else if (column.filter.direction == "out") {
+        tripleMutation.mutate({
+          subjectId: cellData.node_id,
+          predicateId: column.filter.predicate_id,
+          objectId: anotherId,
+        });
+
+      }
+    }, [tripleMutation.mutate]
+  )
+  return (
+    <div className="max-w-100 min-w-40 flex flex-wrap gap-1 overflow-x-scroll">
+      {values.map((a) => <NodeBadgeTriple
+        key={a} nodeId={a}
+        getNode={getNode}
+        onDelete={
+          () => {
+            deleteTripleMutation.mutate({
+              subjectId: column.filter.direction == "in" ? a : cellData.node_id,
+              predicateId: column.filter.predicate_id,
+              objectId: column.filter.direction == "in" ? cellData.node_id : a
+            });
+          }
+        }
+      />)}
+      <NodeBadgeAdd onChoice={handleChoice}></NodeBadgeAdd>
+    </div>
+  )
+});
+const NodesTable = React.memo(function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onDeleteColumn, filter, setFilter}: NodesTableProps ) {
   const {getNode } = useNodesQuery();
   const {getPredicate} = usePredicateQuery();
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-
   const nodeDeleteMutation = useNodesDeleteMutation();
   const tripleMutation = useTripleCreateMutation();
   const novoMutation = useNodesCreateMutation();
@@ -121,27 +185,27 @@ export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onD
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
-  const columns: ColumnDef<Payment>[] = [
+  const columns = React.useMemo<ColumnDef<Payment>[]>(() =>[
     {
       id: "select",
       header: ({ table }) => (
         <div className="flex items-center">
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        /></div>
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          /></div>
       ),
       cell: ({ row }) => (
         <div className="flex items-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        /></div>
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          /></div>
       ),
       enableSorting: false,
       enableHiding: false,
@@ -150,73 +214,60 @@ export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onD
       accessorKey: "node_id",
       header: "Node",
       cell: ({ row }) => (<div className="flex gap-2">
-          <NodeBadge key={row.original.node_id} nodeId={row.original.node_id} />
-        </div>
+        <NodeBadge key={row.original.node_id} nodeId={row.original.node_id} />
+      </div>
 
       ),
     },
     ...columnsDef.map((c) => ({
       id: `d-columns.${c.id}`,
-      header: ({ column }: HeaderContext<Payment, unknown>) => (
-        <DataTableColumnHeader
-          column={column}
-          title={getPredicate(c.filter.predicate_id)?.label || ""}
-          isIn={c.filter.direction == null ? null : c.filter.direction == "in"}
-          onDeleteColumn={() => {
-            onDeleteColumn(c.id)
-          }}
-          onChangeDirection={(direction) => {
-            onChangeColumn(c.id,null, direction)
-          }}
-        />
-      ),
+      header: ({ column, table }: HeaderContext<Payment, unknown>) => {
+        const getPredicate = table.options.meta?.getPredicate!
+        const handleDeleteColumn = React.useCallback(
+            () => {
+              onDeleteColumn(c.id)
+          },
+          [c, onDeleteColumn]
+        )
+        const handleChangeDirection = React.useCallback(
+          (direction: "in" | "out" | "any") => {
+            onChangeColumn(c.id, null, direction)
+          },
+          [c, onChangeColumn]
+        )
+        return (
+          <DataTableColumnHeader
+            column={column}
+            title={getPredicate(c.filter.predicate_id)?.label || ""}
+            isIn={c.filter.direction == null ? null : c.filter.direction == "in"}
+            onDeleteColumn={handleDeleteColumn}
+            onChangeDirection={handleChangeDirection}
+          />)
+      },
       enableHiding: false,
       cell: ({ row }: { row: Row<Payment> }) => {
 
         const values = row.original.row?.columns.filter(d => d.id == c.id)[0].values as number[]
-        return (
-          <div className="max-w-100 min-w-40 flex flex-wrap gap-1 overflow-x-scroll">
-            {values.map((a) => <NodeBadgeTriple
-              key={a} nodeId={a}
-              getNode={getNode}
-              onDelete={
-                () => {
-                  deleteTripleMutation.mutate({
-                    subjectId: c.filter.direction == "in" ? a : row.original.node_id,
-                    predicateId: c.filter.predicate_id,
-                    objectId: c.filter.direction == "in" ? row.original.node_id : a
-                  });
-                }
-              }
-            />)}
-            <NodeBadgeAdd onChoice={(anotherId) => {
-              if (c.filter.direction == "in") {
-                tripleMutation.mutate({
-                  subjectId: anotherId,
-                  predicateId: c.filter.predicate_id,
-                  objectId: row.original.node_id
-                });
-              }
-              else if (c.filter.direction == "out") {
-                tripleMutation.mutate({
-                  subjectId: row.original.node_id,
-                  predicateId: c.filter.predicate_id,
-                  objectId: anotherId,
-                });
-
-              }
-            }}></NodeBadgeAdd>
-          </div>
-        )
+        return <DynamicColumnCell
+          values={values}
+          cellData={row.original}
+          tripleMutation={tripleMutation}
+          deleteTripleMutation={deleteTripleMutation}
+          column={c}
+          getNode={getNode} />
       },
     })),
     {
       id: "actions",
       enableHiding: false,
-      header: () => (<NewColumnDialog onAddColumn={(predicate, direction) => {
-        onNewColumn(predicate || 0, direction);
-      }}/>),
-      cell: ({ row, table}) => {
+      header: () => {
+        const handleAddColumn = React.useCallback((predicate : number | null, direction : "in" | "out" | "any") => {
+          onNewColumn(predicate || 0, direction);
+        }, [onNewColumn]);
+
+        return (<NewColumnDialog onAddColumn={handleAddColumn} />)
+      },
+      cell: ({ row, table }) => {
         const payment = row.original
         const nodeDeleteMutation = table.options.meta?.nodeDeleteMutation!;
 
@@ -242,27 +293,21 @@ export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onD
         )
       },
     },
-  ]
+  ], [columnsDef]);
 
   const table = useReactTable({
     data,
     columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
-      sorting,
-      columnFilters,
       columnVisibility,
       rowSelection,
     },
     meta: {
-      nodeDeleteMutation
+      nodeDeleteMutation,
+      getPredicate
     }
   })
   return (
@@ -292,21 +337,7 @@ export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onD
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => <NodeTableRow row={row} key={row.id}/>)
             ) : (
               <TableRow>
                 <TableCell
@@ -354,4 +385,6 @@ export function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onD
       </div>
     </div>
   )
-}
+})
+
+export { NodesTable };

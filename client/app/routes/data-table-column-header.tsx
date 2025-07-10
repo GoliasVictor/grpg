@@ -1,4 +1,4 @@
-import type { Column } from "@tanstack/react-table"
+import { type Column } from "@tanstack/react-table"
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronsUpDown, EyeOff, Minus, X } from "lucide-react"
 
 import { cn } from "~/lib/utils"
@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu"
+import { memo } from "react"
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -20,14 +21,13 @@ interface DataTableColumnHeaderProps<TData, TValue>
   onDeleteColumn: () => void
 }
 
-export function DataTableColumnHeader<TData, TValue>({
+function DataTableColumnHeaderPrimitive<TData, TValue>({
   column,
   title,
   className,
   isIn,
   onChangeDirection,
   onDeleteColumn
-
 }: DataTableColumnHeaderProps<TData, TValue>) {
   //   if (!column.getCanSort()) {
   //     return <div className={cn(className)}>{title}</div>
@@ -72,10 +72,12 @@ export function DataTableColumnHeader<TData, TValue>({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button variant="ghost" size="icon" className="transition-colors duration-200 hover:text-white cursor-pointer 
+      <Button variant="ghost" size="icon" className="transition-colors duration-200 hover:text-white cursor-pointer
       hover:bg-destructive focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 h-8" onClick={onDeleteColumn}>
-        <X/>
+        <X />
       </Button>
     </div>
   )
-}
+};
+
+export default memo(DataTableColumnHeaderPrimitive) as typeof DataTableColumnHeaderPrimitive;
