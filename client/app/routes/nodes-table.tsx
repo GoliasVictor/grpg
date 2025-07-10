@@ -73,12 +73,10 @@ declare module '@tanstack/react-table' {
 
 export type Payment = {
   node_id: number;
-  row: {
-    columns: {
-      id: number;
-      values: number[];
-    }[];
-  } | undefined;
+  columns: {
+    id: number;
+    values: number[];
+  }[];
 }
 
 type Column = {
@@ -247,7 +245,7 @@ const NodesTable = React.memo(function NodesTable({ data, columnsDef, onNewColum
       enableHiding: false,
       cell: ({ row }: { row: Row<Payment> }) => {
 
-        const values = row.original.row?.columns.filter(d => d.id == c.id)[0].values as number[]
+        const values = row.original.columns.filter(d => d.id == c.id)[0].values as number[]
         return <DynamicColumnCell
           values={values}
           cellData={row.original}

@@ -62,7 +62,8 @@ class PostPredicate(BaseModel):
 @app.get("/scalar", include_in_schema=False)
 async def scalar_html():
     return get_scalar_api_reference(
-        openapi_url=app.openapi_url,
+        openapi_url="http://localhost:8000/openapi.json",
+
         title=app.title,
     )
 
@@ -207,46 +208,80 @@ class ColumnFilter(BaseModel):
 class ColumnDefinition(BaseModel):
     id: int
     filter: ColumnFilter
-class GetRow(BaseModel):
-    node_id: int
+class GetTable(BaseModel):
+    nodes_id: list[int]
     columns: list[ColumnDefinition]
 
-class RowColumnResponse(BaseModel):
+class CellResponse(BaseModel):
     id: int
     values: list[int]
 
-class RowResponse(BaseModel):
-    columns: list[RowColumnResponse]
+class RowRespone(BaseModel):
+    node_id: int
+    columns: list[CellResponse]
 
-@app.post("/row", tags=["node"])
-def table(parms: GetRow) -> RowResponse:
+
+@app.post("/full-table", tags=["table"])
+def table(parms: GetTable) -> list[RowRespone]:
     result = {"columns": []}
-    node_id = parms.node_id
+    query = """
+        MATCH (:Node { id: $nid })-[r]->(a) 
+        WHERE r.id in $out_ids
+        RETURN a.id as nid, r.id as pid, "in" as direction
+        ORDER BY a.id
 
-    for col in parms.columns:
-        direction = col.filter.direction
-        predicate_id = col.filter.predicate_id
-        if direction == None:
-            rel_str = "-[t:Triple {id: $pid}]-"
-        elif direction == "out":
-            rel_str = "-[t:Triple {id: $pid}]->"
-        else:
-            rel_str = "<-[t:Triple {id: $pid}]-"
+        UNION ALL
+        MATCH (:Node { id: $nid })<-[r]-(a)
+        WHERE r.id in $in_ids
+        RETURN a.id as nid, r.id as pid, "out" as direction
+        ORDER BY a.id
 
-        query = f"""
-            MATCH (n:Node {{id: $node_id}}) {rel_str} (m:Node)
-            RETURN DISTINCT m.id AS id
-        """
-        params = {"node_id": node_id, "pid": predicate_id}
-        df = conn.execute(query, params).get_as_df()
-        values = df["id"].tolist() if "id" in df else []
+        UNION ALL
+        MATCH (:Node { id: $nid })-[r]-(a)
+        WHERE r.id in $any_ids
+        RETURN a.id as nid, r.id as pid, "any" as direction
+        ORDER BY a.id;"""
+    
+    query_params = {
+        "out_ids":[
+            col.filter.predicate_id for col in parms.columns if col.filter.direction == "out"
+        ],
+        "in_ids": [
+            col.filter.predicate_id for col in parms.columns if col.filter.direction == "in"
+        ],
+        "any_ids":[
+            col.filter.predicate_id for col in parms.columns if col.filter.direction is None
+        ],
+    }
 
-        result["columns"].append({
-            "id": col.id,
-            "values": values
-        })
+    rows = []
+    for node_id in parms.nodes_id:
+        res = conn.execute(query, { "nid": node_id, **query_params}).get_as_df()
+        print(res)
+        
+        columns_result = [
+            {
+                "id": col.id, 
+                "values": [
+                    cell["nid"]
+                    for idx, cell in res.iterrows()
+                    if  (col.filter.direction is None or cell["direction"] == col.filter.direction) and
+                    (col.filter.predicate_id is None or cell["pid"] == col.filter.predicate_id)
+                ]
+            }
+            for col in parms.columns
+        ]
+        rows.append([node_id,columns_result])
 
-    return RowResponse(columns=[RowColumnResponse(**col) for col in result["columns"]])
+    return [
+        RowRespone(
+            node_id=node_id,
+            columns=[
+                CellResponse(id=col["id"], values=col["values"]) for col in columns_result
+            ]
+        ) for node_id, columns_result in rows
+    ]
+
 
 def common_parameters():
     return "carlos"

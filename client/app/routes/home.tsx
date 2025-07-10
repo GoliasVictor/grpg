@@ -74,20 +74,13 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
   const tableQuery = useQuery({
     queryKey: ['home-table', { values: values, columns: collumns }],
     queryFn: async () => (
-      await Promise.all(
-        values.map(async (c) => ({
-          node_id: c, row: (
-            (await client.POST("/row", {
-              body: {
-                node_id: c,
-                columns: collumns
-              }
-            }
-            ))?.data
-          )
-        })
-        )
-      )
+      (await client.POST("/full-table", {
+          body: {
+            nodes_id: values,
+            columns: collumns
+          }
+        }
+      ))?.data
     )
     //refetchInterval: 1500,
   })
@@ -122,6 +115,7 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
       })
     )
   }, [collumns]);
+
   const handleDeleteColumn = useCallback((id: number) => {
       setCollumns(collumns.filter(c => c.id !== id));
   }, [collumns]);
@@ -131,13 +125,13 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
   if (!Object.is(tableQuery.data, lastData) && !tableQuery.isPending  ) {
     setLastData(tableQuery.data);
   }
-
+  console.log(tableQuery.data)
   return (
     <div className="flex flex-col h-screen w-screen items-center">
       <div className="w-min flex-row flex" >
         <div>
           <NodesTable
-            data={tableData}
+            data={tableQuery.data || []}
             columnsDef={collumns}
             filter={filter}
             setFilter={setFilter}
