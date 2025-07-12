@@ -1,16 +1,7 @@
-import { Button } from "~/components/ui/button"
-import {
-  keepPreviousData,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
-import { Maximize2, Minimize2 } from "lucide-react";
 import type { Route } from "./+types/home"
 import { useCallback, useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { client, useFilterdNodesQuery, useNodesQuery, usePredicateQuery, useTableQuery } from "~/hooks/queries";
+import { client, useFilterdNodesQuery, useNodesQuery, useTableQuery } from "~/hooks/queries";
 import { NodesTable } from "../pages/home/nodes-table";
-import type { components } from "~/lib/api/specs";
 
 
 export function meta({ }: Route.MetaArgs) {
@@ -38,7 +29,7 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
     anotherNode: null,
     predicate: null,
   });
-  const [collumns, setCollumns] = useState<{
+  const [columns, setCollumns] = useState<{
     id: number,
     filter: {
       direction: "in" | "out" | null;
@@ -60,23 +51,22 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
   } else {
     values = [...filterdNodes.data || []];
   }
-  const tableQuery = useTableQuery(values, collumns);
-  const [lastData, setLastData] = useState<typeof tableQuery.data | null>(null);
+  const tableQuery = useTableQuery(values, columns);
   const handleNewColumn = useCallback((newPid: number, newInOut: "in" | "out" | "any") => {
     setCollumns([
-      ...collumns,
+      ...columns,
       {
-        id: collumns.length + 1,
+        id: columns.length + 1,
         filter: {
           predicate_id: newPid ?? 1,
           direction: (newInOut == "any" ? null : newInOut)
         }
       }
     ])
-  }, [collumns]);
+  }, [columns]);
   const handleChangeColumn = useCallback((id: number, newPid: number | null, newInOut: "in" | "out" | "any" | null) => {
     setCollumns(
-      collumns.map((c) => {
+      columns.map((c) => {
         if (c.id === id) {
 
           return {
@@ -91,20 +81,20 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
         return c;
       })
     )
-  }, [collumns]);
+  }, [columns]);
 
   const handleDeleteColumn = useCallback((id: number) => {
-      setCollumns(collumns.filter(c => c.id !== id));
-  }, [collumns]);
+      setCollumns(columns.filter(c => c.id !== id));
+  }, [columns]);
   if (tableQuery.error) return 'An error has occurred: ' + tableQuery.error
-  if (tableQuery.isLoading && lastData == null) return 'Loading...';
+  if (tableQuery.isLoading) return 'Loading...';
   return (
     <div className="flex flex-col h-screen w-screen items-center">
       <div className="w-min flex-row flex" >
         <div>
           <NodesTable
             data={tableQuery.data || []}
-            columnsDef={collumns}
+            columnsDef={columns}
             filter={filter}
             setFilter={setFilter}
             onNewColumn={handleNewColumn}

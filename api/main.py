@@ -224,25 +224,28 @@ class RowRespone(BaseModel):
 @app.post("/full-table", tags=["table"])
 def table(parms: GetTable) -> list[RowRespone]:
     result = {"columns": []}
+    if len(parms.nodes_id) == 0:
+        return []
     query = """
-        MATCH (:Node { id: $nid })-[r]->(a) 
-        WHERE r.id in $out_ids
-        RETURN a.id as nid, r.id as pid, "out" as direction
+        MATCH (c:Node)-[r]->(a) 
+        WHERE r.id in $out_ids and c.id in $nids
+        RETURN c.id as rnid, a.id as nid, r.id as pid, "out" as direction
         ORDER BY a.id
 
         UNION ALL
-        MATCH (:Node { id: $nid })<-[r]-(a)
-        WHERE r.id in $in_ids
-        RETURN a.id as nid, r.id as pid, "in" as direction
+        MATCH (c:Node)<-[r]-(a)
+        WHERE r.id in $in_ids and c.id in $nids
+        RETURN c.id as rnid, a.id as nid, r.id as pid, "in" as direction
         ORDER BY a.id
 
         UNION ALL
-        MATCH (:Node { id: $nid })-[r]-(a)
-        WHERE r.id in $any_ids
-        RETURN a.id as nid, r.id as pid, "any" as direction
+        MATCH (c:Node)-[r]-(a)
+        WHERE r.id in $any_ids and c.id in $nids
+        RETURN c.id as rnid, a.id as nid, r.id as pid, "any" as direction
         ORDER BY a.id;"""
     
     query_params = {
+        "nids": parms.nodes_id,
         "out_ids":[
             col.filter.predicate_id for col in parms.columns if col.filter.direction == "out"
         ],
@@ -253,27 +256,28 @@ def table(parms: GetTable) -> list[RowRespone]:
             col.filter.predicate_id for col in parms.columns if col.filter.direction is None
         ],
     }
-    
+    res = conn.execute(query, query_params).get_as_df()
+    rows = {
+        nid: [
+            {"id": col.id, "values": [] }
+            for col in parms.columns
+        ] for nid in parms.nodes_id
+    }
 
-    rows = []
-    for node_id in parms.nodes_id:
-        print(node_id)
-        res = conn.execute(query, { "nid": node_id, **query_params}).get_as_df()
-        print(res)
-        
+    for nid, row in res.groupby("rnid").apply(lambda x: x.to_dict(orient='records')).items():                
         columns_result = [
             {
                 "id": col.id, 
                 "values": [
                     cell["nid"]
-                    for idx, cell in res.iterrows()
+                    for cell in row
                     if  (col.filter.direction is None or cell["direction"] == col.filter.direction) and
                     (col.filter.predicate_id is None or cell["pid"] == col.filter.predicate_id)
                 ]
             }
             for col in parms.columns
         ]
-        rows.append([node_id,columns_result])
+        rows[nid] = columns_result
 
     return [
         RowRespone(
@@ -281,7 +285,7 @@ def table(parms: GetTable) -> list[RowRespone]:
             columns=[
                 CellResponse(id=col["id"], values=col["values"]) for col in columns_result
             ]
-        ) for node_id, columns_result in rows
+        ) for node_id, columns_result in rows.items()
     ]
 
 
