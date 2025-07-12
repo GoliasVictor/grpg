@@ -105,15 +105,15 @@ export type NodesTableProps = {
 };
 
 
-const NodeTableCell = React.memo(function ({ cell }: { cell: Cell<Payment, unknown> }) {
+function NodeTableCell({ cell }: { cell: Cell<Payment, unknown> }) {
   return <TableCell>
     {flexRender(
       cell.column.columnDef.cell,
       cell.getContext()
     )}
   </TableCell>;
-})
-const NodeTableRow = React.memo(function ({ row } : { row: Row<Payment>}) {
+}
+function NodeTableRow({ row } : { row: Row<Payment>}) {
   return (
   <TableRow
       data-state={row.getIsSelected() && "selected"}
@@ -123,9 +123,9 @@ const NodeTableRow = React.memo(function ({ row } : { row: Row<Payment>}) {
       ))}
     </TableRow>
   )
-})
+}
 
-const DynamicColumnCell = React.memo(({ cellData, deleteTripleMutation, tripleMutation, column, getNode, values }:  {
+const DynamicColumnCell = ({ cellData, deleteTripleMutation, tripleMutation, column, getNode, values }:  {
   tripleMutation: ReturnType<typeof useTripleCreateMutation>,
   deleteTripleMutation: ReturnType<typeof useTripleDeleteMutation>,
   values : number[],
@@ -134,7 +134,7 @@ const DynamicColumnCell = React.memo(({ cellData, deleteTripleMutation, tripleMu
   getNode: ReturnType<typeof useNodesQuery>["getNode"]
 }) => {
   const handleChoice = React.useCallback(
-    (anotherId : number) => {
+    (anotherId: number) => {
       if (column.filter.direction == "in") {
         tripleMutation.mutate({
           subjectId: anotherId,
@@ -167,15 +167,16 @@ const DynamicColumnCell = React.memo(({ cellData, deleteTripleMutation, tripleMu
           }
         }
       />)}
-      <NodeBadgeAdd onChoice={handleChoice}></NodeBadgeAdd>
+      { column.filter.direction != null && <NodeBadgeAdd onChoice={handleChoice}></NodeBadgeAdd>}
+
     </div>
   )
-});
+};
 const NodesTable = React.memo(function NodesTable({ data, columnsDef, onNewColumn, onChangeColumn , onDeleteColumn, filter, setFilter}: NodesTableProps ) {
   const {getNode } = useNodesQuery();
   const {getPredicate} = usePredicateQuery();
   const nodeDeleteMutation = useNodesDeleteMutation();
-  const tripleMutation = useTripleCreateMutation();
+  const tripleCreateMutation = useTripleCreateMutation();
   const novoMutation = useNodesCreateMutation();
   const deleteTripleMutation = useTripleDeleteMutation();
   const [rows, setRows] = React.useState<{rowData: any, component: any}>();
@@ -249,7 +250,7 @@ const NodesTable = React.memo(function NodesTable({ data, columnsDef, onNewColum
         return <DynamicColumnCell
           values={values}
           cellData={row.original}
-          tripleMutation={tripleMutation}
+          tripleMutation={tripleCreateMutation}
           deleteTripleMutation={deleteTripleMutation}
           column={c}
           getNode={getNode} />

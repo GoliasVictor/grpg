@@ -3,7 +3,7 @@ services:
   explorer:
     image: kuzudb/explorer:latest
     ports:
-      - "8080:8080"
+      - "8080:8000"
     volumes:
       - ./demo_db/:/database
     restart: unless-stopped

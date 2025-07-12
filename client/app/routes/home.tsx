@@ -8,8 +8,9 @@ import { Maximize2, Minimize2 } from "lucide-react";
 import type { Route } from "./+types/home"
 import { useCallback, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { client, useNodesQuery, usePredicateQuery } from "~/hooks/queries";
+import { client, useFilterdNodesQuery, useNodesQuery, usePredicateQuery, useTableQuery } from "~/hooks/queries";
 import { NodesTable } from "../pages/home/nodes-table";
+import type { components } from "~/lib/api/specs";
 
 
 export function meta({ }: Route.MetaArgs) {
@@ -51,20 +52,7 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
       direction: null,
     }
   })));
-  const filterdNodes = useQuery({
-    queryKey: ['home-nodes', { filter: filter }],
-    queryFn: async () => {
-      return (await client.POST("/table", {
-        body: {
-          direction: filter.direction === "any" ? null : filter.direction,
-          predicate: filter.predicate ?? null,
-          node_id: filter.anotherNode ?? null
-        }
-      }))?.data
-    },
-    //refetchInterval: 1000,
-    select: (data) => new Set((data ?? []).map(d => d.node_id))
-  });
+  const filterdNodes = useFilterdNodesQuery(filter);
 
   let values;
   if (filter.anotherNode == null && filter.direction == "any" && filter.predicate == null) {
@@ -72,20 +60,7 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
   } else {
     values = [...filterdNodes.data || []];
   }
-  const tableQuery = useQuery({
-    queryKey: ['home-table', { values: values, columns: collumns }],
-    queryFn: async () => (
-      (await client.POST("/full-table", {
-          body: {
-            nodes_id: values,
-            columns: collumns
-          }
-        }
-      ))?.data
-    ),
-    placeholderData: keepPreviousData,
-    //refetchInterval: 1500,
-  })
+  const tableQuery = useTableQuery(values, collumns);
   const [lastData, setLastData] = useState<typeof tableQuery.data | null>(null);
   const handleNewColumn = useCallback((newPid: number, newInOut: "in" | "out" | "any") => {
     setCollumns([
@@ -123,11 +98,6 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
   }, [collumns]);
   if (tableQuery.error) return 'An error has occurred: ' + tableQuery.error
   if (tableQuery.isLoading && lastData == null) return 'Loading...';
-  const tableData = (tableQuery.data ?? lastData) ?? [];
-  if (!Object.is(tableQuery.data, lastData) && !tableQuery.isPending  ) {
-    setLastData(tableQuery.data);
-  }
-  console.log(tableQuery.data)
   return (
     <div className="flex flex-col h-screen w-screen items-center">
       <div className="w-min flex-row flex" >

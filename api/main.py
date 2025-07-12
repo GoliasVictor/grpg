@@ -227,13 +227,13 @@ def table(parms: GetTable) -> list[RowRespone]:
     query = """
         MATCH (:Node { id: $nid })-[r]->(a) 
         WHERE r.id in $out_ids
-        RETURN a.id as nid, r.id as pid, "in" as direction
+        RETURN a.id as nid, r.id as pid, "out" as direction
         ORDER BY a.id
 
         UNION ALL
         MATCH (:Node { id: $nid })<-[r]-(a)
         WHERE r.id in $in_ids
-        RETURN a.id as nid, r.id as pid, "out" as direction
+        RETURN a.id as nid, r.id as pid, "in" as direction
         ORDER BY a.id
 
         UNION ALL
@@ -253,9 +253,11 @@ def table(parms: GetTable) -> list[RowRespone]:
             col.filter.predicate_id for col in parms.columns if col.filter.direction is None
         ],
     }
+    
 
     rows = []
     for node_id in parms.nodes_id:
+        print(node_id)
         res = conn.execute(query, { "nid": node_id, **query_params}).get_as_df()
         print(res)
         

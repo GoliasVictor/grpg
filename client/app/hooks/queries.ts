@@ -1,12 +1,29 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import createClient from "openapi-fetch";
-import type { paths } from "~/lib/api/specs";
+import type { components, paths } from "~/lib/api/specs";
 
 export const client = createClient<paths>({ baseUrl: "http://127.0.0.1:8000/" });
 
+
+type Filter = {
+  predicate: number | null;
+  direction: "in" | "out" | "any";
+  anotherNode: number | null;
+}
+const QueriesKeys = {
+  nodes: ['nodes'],
+  predicates: ['predicates'],
+  table: (isIn: boolean, nodeId: number) => ['table', { isIn, nodeId }],
+  homeTable: ['home-table'],
+  homeNodes: (filter: Filter) => ['home-nodes', { filter }],
+  AnyfullTable: ['full-table'],
+  fullTable: (values: number[], columns: components["schemas"]["ColumnDefinition"][]) => (
+    ['full-table', { values, columns }]
+  ),
+}
 export function usePredicateQuery() {
   const predicatesQuery = useQuery({
-    queryKey: ['predicates'],
+    queryKey: QueriesKeys.predicates,
     queryFn: async () => (await client.GET("/predicates"))?.data,
     staleTime: Infinity
   })
@@ -22,7 +39,7 @@ export function usePredicateQuery() {
 
 export function useNodesQuery({subscribed} : {subscribed?: boolean} = { }) {
   const query = useQuery({
-    queryKey: ['nodes'],
+    queryKey:  QueriesKeys.nodes,
     queryFn: async () => (await client.GET("/node"))?.data,
     staleTime: Infinity,
     subscribed: subscribed,
@@ -39,7 +56,7 @@ export function useNodesQuery({subscribed} : {subscribed?: boolean} = { }) {
 
 export function useOneNodeQuery(id : number) {
   return useQuery({
-    queryKey: ['nodes'],
+    queryKey: QueriesKeys.nodes,
     queryFn: async () => (await client.GET("/node"))?.data,
     staleTime: Infinity,
     select: (data) => {
@@ -51,7 +68,7 @@ export function useOneNodeQuery(id : number) {
 }
 export function useTableInOutQuery(isIn: boolean, nodeId: number) {
   const query = useQuery({
-    queryKey: ['table', { isIn: "in", nodeId: nodeId }],
+    queryKey: QueriesKeys.table(isIn, nodeId),
     queryFn: async () => (await client.POST("/table", {
       body: {
         node_id: nodeId,
@@ -63,7 +80,39 @@ export function useTableInOutQuery(isIn: boolean, nodeId: number) {
   })
   return query;
 }
+export function useFilterdNodesQuery(filter: Filter) {
+  return useQuery({
+    queryKey: ['home-nodes', { filter: filter }],
+    queryFn: async () => {
+      return (await client.POST("/table", {
+        body: {
+          direction: filter.direction === "any" ? null : filter.direction,
+          predicate: filter.predicate ?? null,
+          node_id: filter.anotherNode ?? null
+        }
+      }))?.data
+    },
+    //refetchInterval: 1000,
+    select: (data) => new Set((data ?? []).map(d => d.node_id))
+  });
+}
 
+export function useTableQuery(values: number[], columns : components["schemas"]["ColumnDefinition"][]) {
+  return useQuery({
+    queryKey: QueriesKeys.fullTable(values, columns),
+    queryFn: async () => (
+      (await client.POST("/full-table", {
+        body: {
+          nodes_id: values,
+          columns: columns
+        }
+      }
+      ))?.data
+    ),
+    placeholderData: keepPreviousData,
+    //refetchInterval: 1500,
+  })
+}
 type Node = {
   node_id: number;
   label: string;
@@ -72,7 +121,7 @@ export function useNodesUpdateMutation() {
   const queryClient = useQueryClient();
   const mutatation = useMutation({
     mutationFn: async (data: { nodeId: number, label: string }) => {
-      queryClient.cancelQueries({ queryKey: ['nodes'] });
+      queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
       await client.PUT("/node/{node_id}", {
         params: {
           path: { node_id: data.nodeId },
@@ -81,8 +130,7 @@ export function useNodesUpdateMutation() {
       })
     },
     onSuccess: () => {
-
-      queryClient.invalidateQueries({ queryKey: ['nodes'] });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.nodes });
     },
   })
   return mutatation
@@ -92,7 +140,7 @@ export function useNodesCreateMutation() {
   const queryClient = useQueryClient();
   const mutatation = useMutation({
     mutationFn: async (data: { label: string }) => {
-      queryClient.cancelQueries({ queryKey: ['nodes'] });
+      queryClient.cancelQueries({ queryKey: QueriesKeys.nodes });
       await client.POST("/node", {
         params: {
           query: data
@@ -100,9 +148,9 @@ export function useNodesCreateMutation() {
       })
     },
     onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: ['nodes'] });
-      queryClient.invalidateQueries({ queryKey: ['home-table'] });
-
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.nodes });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.homeTable });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.AnyfullTable });
     },
   })
   return mutatation
@@ -112,7 +160,7 @@ export function useNodesDeleteMutation() {
   const queryClient = useQueryClient();
   const mutatation = useMutation({
     mutationFn: async (data: { nodeId: number }) => {
-      queryClient.cancelQueries({ queryKey: ['nodes'] });
+      queryClient.cancelQueries({ queryKey: QueriesKeys.nodes });
       await client.DELETE("/node/{node_id}", {
         params: {
           path: { node_id: data.nodeId }
@@ -120,8 +168,9 @@ export function useNodesDeleteMutation() {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes'] });
-      queryClient.invalidateQueries({ queryKey: ['home-table'] });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.nodes });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.homeTable });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.AnyfullTable });
     }
   })
   return mutatation
@@ -131,7 +180,8 @@ export function useTripleCreateMutation() {
   const queryClient = useQueryClient();
   const mutatation = useMutation({
     mutationFn: async (data: { objectId: number, predicateId: number, subjectId: number }) => {
-      queryClient.cancelQueries({ queryKey: ['home-table'] });
+      queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
+      queryClient.cancelQueries({ queryKey: QueriesKeys.AnyfullTable });
       await client.POST("/triple", {
         body: {
           object_id: data.objectId,
@@ -141,7 +191,8 @@ export function useTripleCreateMutation() {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['home-table'] });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.homeTable });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.AnyfullTable });
     },
   })
   return mutatation;
@@ -151,7 +202,7 @@ export function useTripleDeleteMutation() {
   const queryClient = useQueryClient();
   const mutatation = useMutation({
     mutationFn: async (data: { objectId: number, predicateId: number, subjectId: number }) => {
-      queryClient.cancelQueries({ queryKey: ['home-table'] });
+      queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
       await client.DELETE("/triple", {
         body: {
           object_id: data.objectId,
@@ -161,7 +212,8 @@ export function useTripleDeleteMutation() {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['home-table'] });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.homeTable });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.AnyfullTable });
     },
   })
   return mutatation;
