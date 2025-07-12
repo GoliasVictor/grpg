@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { DialogHeader, DialogFooter } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
-import PredicatesComboBox from "./predicates-combo-box";
+import PredicatesComboBox from "../../components/predicates-combo-box";
 import { useState } from "react";
 
 import {

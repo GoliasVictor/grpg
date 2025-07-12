@@ -58,7 +58,7 @@ import DataTableColumnHeader  from "./data-table-column-header"
 import NodeBadge from "./node-badge"
 import NodeBadgeAdd from "./node-badge-add"
 import NodeBadgeTriple from "./node-badge-triple"
-import PredicatesComboBox from "./predicates-combo-box"
+import PredicatesComboBox from "../../components/predicates-combo-box"
 import { NewColumnDialog } from "./new-column-dialog"
 import TableFilterHead from "./table-filter-head"
 
@@ -178,7 +178,7 @@ const NodesTable = React.memo(function NodesTable({ data, columnsDef, onNewColum
   const tripleMutation = useTripleCreateMutation();
   const novoMutation = useNodesCreateMutation();
   const deleteTripleMutation = useTripleDeleteMutation();
-
+  const [rows, setRows] = React.useState<{rowData: any, component: any}>();
 
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})

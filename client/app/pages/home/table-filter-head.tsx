@@ -11,8 +11,8 @@ import {
 } from "~/components/ui/select"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import React from "react";
-import PredicatesComboBox from "./predicates-combo-box";
-import NodesComboBox from "./nodes-combo-box";
+import PredicatesComboBox from "../../components/predicates-combo-box";
+import NodesComboBox from "../../components/nodes-combo-box";
 
 type Filter = {
   predicate: number | null;

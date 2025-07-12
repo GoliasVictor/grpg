@@ -1,5 +1,6 @@
 import { Button } from "~/components/ui/button"
 import {
+  keepPreviousData,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
@@ -8,7 +9,7 @@ import type { Route } from "./+types/home"
 import { useCallback, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { client, useNodesQuery, usePredicateQuery } from "~/hooks/queries";
-import { NodesTable } from "./nodes-table";
+import { NodesTable } from "../pages/home/nodes-table";
 
 
 export function meta({ }: Route.MetaArgs) {
@@ -81,7 +82,8 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
           }
         }
       ))?.data
-    )
+    ),
+    placeholderData: keepPreviousData,
     //refetchInterval: 1500,
   })
   const [lastData, setLastData] = useState<typeof tableQuery.data | null>(null);

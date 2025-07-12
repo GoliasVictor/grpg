@@ -19,7 +19,7 @@ export function meta({ }: Route.MetaArgs) {
   ]
 }
 function GTable({ data, getPredicate, isIn }: { data: any[], getPredicate: (id: number) => any | undefined, isIn: boolean }) {
-  
+
   const predicateCell = (d: any) => (
     <TableCell>
       {getPredicate(d.pid!)?.label ?? 0}
@@ -73,7 +73,7 @@ export default function Home(this: any, {
   if (inTableQuery.error) return 'An error has occurred: ' + inTableQuery.error
   if (inTableQuery.isLoading) return 'Loading...';
   if (!inTableQuery.data) return 'No data found';
-  
+
   if (outTableQuery.error) return 'An error has occurred: ' + outTableQuery.error
   if (outTableQuery.isLoading) return 'Loading...';
   if (!outTableQuery.data) return 'No data found';
