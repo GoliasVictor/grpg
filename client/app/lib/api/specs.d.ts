@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/full-table": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["full_table"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/node": {
         parameters: {
             query?: never;
@@ -11,11 +27,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Node */
-        get: operations["get_node_node_get"];
+        get: operations["get_node"];
         put?: never;
-        /** Post Node */
-        post: operations["post_node_node_post"];
+        post: operations["post_node"];
         delete?: never;
         options?: never;
         head?: never;
@@ -30,46 +44,9 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Put Node */
-        put: operations["put_node_node__node_id__put"];
+        put: operations["put_node"];
         post?: never;
-        /** Delete Node */
-        delete: operations["delete_node_node__node_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/triple": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Post Triple */
-        post: operations["post_triple_triple_post"];
-        /** Delete Triple */
-        delete: operations["delete_triple_triple_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/predicates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Predicates */
-        get: operations["get_predicates_predicates_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
+        delete: operations["delete_node"];
         options?: never;
         head?: never;
         patch?: never;
@@ -84,8 +61,23 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post Predicate */
-        post: operations["post_predicate_predicate_post"];
+        post: operations["post_predicate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/predicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_predicates"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -101,15 +93,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Table */
-        post: operations["table_table_post"];
+        post: operations["table"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/full-table": {
+    "/triple": {
         parameters: {
             query?: never;
             header?: never;
@@ -118,26 +109,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Table */
-        post: operations["table_full_table_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/items/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Item */
-        get: operations["read_item_items__item_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
+        post: operations["post_triple"];
+        delete: operations["delete_triple"];
         options?: never;
         head?: never;
         patch?: never;
@@ -147,115 +120,70 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** CellResponse */
         CellResponse: {
-            /** Id */
+            /** Format: int32 */
             id: number;
-            /** Values */
             values: number[];
         };
-        /** ColumnDefinition */
         ColumnDefinition: {
-            /** Id */
-            id: number;
             filter: components["schemas"]["ColumnFilter"];
-        };
-        /** ColumnFilter */
-        ColumnFilter: {
-            /** Direction */
-            direction: ("in" | "out") | null;
-            /** Predicate Id */
-            predicate_id: number;
-        };
-        /** Filter */
-        Filter: {
-            /** Node Id */
-            node_id: number | null;
-            /** Predicate */
-            predicate: number | null;
-            direction: components["schemas"]["GraphDirection"] | null;
-        };
-        /** GetTable */
-        GetTable: {
-            /** Nodes Id */
-            nodes_id: number[];
-            /** Columns */
-            columns: components["schemas"]["ColumnDefinition"][];
-        };
-        /**
-         * GraphDirection
-         * @enum {string}
-         */
-        GraphDirection: "in" | "out";
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail: components["schemas"]["ValidationError"][];
-        };
-        /** Node */
-        Node: {
-            /** Node Id */
-            node_id: number;
-            /** Label */
-            label: string;
-        };
-        /** NodeResponse */
-        NodeResponse: {
-            /** Node Id */
-            node_id: number;
-        };
-        /** Out */
-        Out: {
-            /** Item Id */
-            item_id: string;
-            /** Q */
-            q: string;
-        };
-        /** PostPredicate */
-        PostPredicate: {
-            /** Label */
-            label: string;
-        };
-        /** Predicate */
-        Predicate: {
-            /** Id */
+            /** Format: int32 */
             id: number;
-            /** Label */
+        };
+        ColumnFilter: {
+            direction: null | components["schemas"]["GraphDirection"];
+            /** Format: int32 */
+            predicate_id: number | null;
+        };
+        Filter: {
+            direction: null | components["schemas"]["GraphDirection"];
+            /** Format: int32 */
+            node_id: number | null;
+            /** Format: int32 */
+            predicate: number | null;
+        };
+        GetTable: {
+            columns: components["schemas"]["ColumnDefinition"][];
+            filter: components["schemas"]["Filter"];
+        };
+        /** @enum {string} */
+        GraphDirection: "in" | "out";
+        Node: {
+            label: string;
+            /** Format: int32 */
+            node_id: number;
+        };
+        NodeResponse: {
+            /** Format: int32 */
+            node_id: number;
+        };
+        PostPredicate: {
             label: string;
         };
-        /** RowRespone */
-        RowRespone: {
-            /** Node Id */
-            node_id: number;
-            /** Columns */
+        Predicate: {
+            /** Format: int32 */
+            id: number;
+            label: string;
+        };
+        RowResponse: {
             columns: components["schemas"]["CellResponse"][];
-        };
-        /** TableRow */
-        TableRow: {
-            /** Node Id */
+            /** Format: int32 */
             node_id: number;
-            /** Label */
-            label: string | null;
-            /** Pid */
-            pid: number | null;
         };
-        /** Triple */
+        TableRow: {
+            label?: string | null;
+            /** Format: int32 */
+            node_id: number;
+            /** Format: int32 */
+            pid?: number | null;
+        };
         Triple: {
-            /** Subject Id */
-            subject_id: number;
-            /** Predicate Id */
-            predicate_id: number;
-            /** Object Id */
+            /** Format: int32 */
             object_id: number;
-        };
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
+            /** Format: int32 */
+            predicate_id: number;
+            /** Format: int32 */
+            subject_id: number;
         };
     };
     responses: never;
@@ -266,274 +194,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get_node_node_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Node"][];
-                };
-            };
-        };
-    };
-    post_node_node_post: {
-        parameters: {
-            query: {
-                label: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NodeResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    put_node_node__node_id__put: {
-        parameters: {
-            query: {
-                label: string;
-            };
-            header?: never;
-            path: {
-                node_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Node"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_node_node__node_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                node_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NodeResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    post_triple_triple_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Triple"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_triple_triple_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Triple"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_predicates_predicates_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Predicate"][];
-                };
-            };
-        };
-    };
-    post_predicate_predicate_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PostPredicate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Predicate"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    table_table_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Filter"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TableRow"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    table_full_table_post: {
+    full_table: {
         parameters: {
             query?: never;
             header?: never;
@@ -546,56 +207,205 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful Response */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RowRespone"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["RowResponse"][];
                 };
             };
         };
     };
-    read_item_items__item_id__get: {
+    get_node: {
         parameters: {
-            query?: {
-                q?: string | null;
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Node"][];
+                };
             };
+        };
+    };
+    post_node: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
-                item_id: string;
+                label: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Out"];
+                    "application/json": components["schemas"]["NodeResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
+        };
+    };
+    put_node: {
+        parameters: {
+            query: {
+                /** @description Novo label do nó */
+                label: string;
+            };
+            header?: never;
+            path: {
+                /** @description ID do nó a ser atualizado */
+                node_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["Node"];
                 };
+            };
+        };
+    };
+    delete_node: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID do nó a ser deletado */
+                node_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeResponse"];
+                };
+            };
+        };
+    };
+    post_predicate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostPredicate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Predicate"];
+                };
+            };
+        };
+    };
+    get_predicates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    table: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Filter"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableRow"][];
+                };
+            };
+        };
+    };
+    post_triple: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Triple"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_triple: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Triple"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

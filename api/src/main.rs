@@ -9,11 +9,12 @@ use utoipa_rapidoc::RapiDoc;
 use utoipa_scalar::{Scalar, Servable as ScalarServable};
 use kuzu::{ Connection, Database, SystemConfig };
 use std::{
-    sync::{Mutex, Arc}
+    sync::{Arc}
 };
 
 pub struct AppState {
-    db: Arc<Database>
+    db: Arc<Database>,
+    store: Arc<db::Store>,
 }
 impl AppState {
     fn establish_connection(&self) -> Connection {
@@ -35,6 +36,7 @@ async fn main() -> Result<(), impl Error> {
 
     let app_data = Data::new(AppState {
         db: Arc::new(db),
+        store: Arc::new(db::Store::new()),
     });
 
     HttpServer::new(move || {
@@ -59,8 +61,11 @@ async fn main() -> Result<(), impl Error> {
                     .service(endpoints::nodes::put_node)
                     .service(endpoints::triples::post_triple)
                     .service(endpoints::triples::delete_triple)
-                    .service(endpoints::nodes::table)
-                    .service(endpoints::nodes::full_table)
+                    .service(endpoints::triples::get_triples)
+                    .service(endpoints::table::full_table)
+                    .service(endpoints::table::get_table)
+                    .service(endpoints::table::post_table)
+                    .service(endpoints::table::get_tables)
                     ;
             })
             .openapi_service(|api| {

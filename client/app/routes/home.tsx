@@ -45,13 +45,8 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
   })));
   const filterdNodes = useFilterdNodesQuery(filter);
 
-  let values;
-  if (filter.anotherNode == null && filter.direction == "any" && filter.predicate == null) {
-    values = nodes.map(n => n.node_id);
-  } else {
-    values = [...filterdNodes.data || []];
-  }
-  const tableQuery = useTableQuery(values, columns);
+
+  const tableQuery = useTableQuery(filter, columns);
   const handleNewColumn = useCallback((newPid: number, newInOut: "in" | "out" | "any") => {
     setCollumns([
       ...columns,

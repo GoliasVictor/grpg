@@ -17,8 +17,8 @@ const QueriesKeys = {
   homeTable: ['home-table'],
   homeNodes: (filter: Filter) => ['home-nodes', { filter }],
   AnyfullTable: ['full-table'],
-  fullTable: (values: number[], columns: components["schemas"]["ColumnDefinition"][]) => (
-    ['full-table', { values, columns }]
+  fullTable: (filter: Filter, columns: components["schemas"]["ColumnDefinition"][]) => (
+    ['full-table', { filter, columns }]
   ),
 }
 export function usePredicateQuery() {
@@ -97,13 +97,17 @@ export function useFilterdNodesQuery(filter: Filter) {
   });
 }
 
-export function useTableQuery(values: number[], columns : components["schemas"]["ColumnDefinition"][]) {
+export function useTableQuery(filter: Filter, columns : components["schemas"]["ColumnDefinition"][]) {
   return useQuery({
-    queryKey: QueriesKeys.fullTable(values, columns),
+    queryKey: QueriesKeys.fullTable(filter, columns),
     queryFn: async () => (
       (await client.POST("/full-table", {
         body: {
-          nodes_id: values,
+          filter: {
+            direction: filter.direction === "any" ? null : filter.direction,
+            predicate: filter.predicate ?? null,
+            node_id: filter.anotherNode ?? null
+          },
           columns: columns
         }
       }
