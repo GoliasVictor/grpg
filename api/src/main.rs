@@ -8,10 +8,12 @@ use utoipa_actix_web::{service_config::ServiceConfig, AppExt};
 use utoipa_rapidoc::RapiDoc;
 use utoipa_scalar::{Scalar, Servable as ScalarServable};
 use kuzu::{ Connection, Database, SystemConfig };
-
+use std::{
+    sync::{Mutex, Arc}
+};
 
 pub struct AppState {
-    db: Database
+    db: Arc<Database>
 }
 impl AppState {
     fn establish_connection(&self) -> Connection {
@@ -26,13 +28,16 @@ async fn main() -> Result<(), impl Error> {
     }
     #[derive(OpenApi)]
     struct ApiDoc;
+    let db = Database::new("./demo_db", SystemConfig::default()).unwrap();
+    let conn = Connection::new(&db).unwrap();
+    db::create_db(&conn);
+    drop(conn);
+
+    let app_data = Data::new(AppState {
+        db: Arc::new(db),
+    });
 
     HttpServer::new(move || {
-        let db = Database::new("./demo_db", SystemConfig::default()).unwrap();
-        let conn = Connection::new(&db).unwrap();
-        db::create_db(&conn);
-        drop(conn);
-
         let cors = Cors::default()
             .allow_any_origin()
             .allow_any_method()
@@ -40,15 +45,14 @@ async fn main() -> Result<(), impl Error> {
 
         App::new()
             .wrap(cors)
-            .app_data(Data::new(AppState {
-                db: db,
-            }))
+            .app_data(app_data.clone())
             .into_utoipa_app()
             .openapi(ApiDoc::openapi())
             .map(|app| app.wrap(Logger::default()))
             .configure(|config: &mut ServiceConfig| {
                 config
                     .service(endpoints::predicates::get_predicates)
+                    .service(endpoints::predicates::post_predicate)
                     .service(endpoints::nodes::post_node)
                     .service(endpoints::nodes::get_node)
                     .service(endpoints::nodes::delete_node)
