@@ -1,6 +1,6 @@
 tables:
   0:
-    label: "Example Table"
+    label: as
     filter:
       node_id: null
       predicate: null
@@ -8,18 +8,18 @@ tables:
     columns:
     - id: 1
       filter:
-        direction: null
+        direction: out
         predicate_id: 1
     - id: 2
       filter:
-        direction: null
+        direction: in
         predicate_id: 2
     - id: 3
       filter:
         direction: null
         predicate_id: 3
   1:
-    label: "Another Table"
+    label: Another Table
     filter:
       node_id: null
       predicate: null
@@ -27,5 +27,5 @@ tables:
     columns:
     - id: 1
       filter:
-        direction: null
-        predicate_id: null
+        direction: out
+        predicate_id: 1

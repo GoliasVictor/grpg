@@ -13,12 +13,13 @@ type Filter = {
 const QueriesKeys = {
   nodes: ['nodes'],
   predicates: ['predicates'],
-  table: (isIn: boolean, nodeId: number) => ['table', { isIn, nodeId }],
+  table: (tableId: number) => ['table', { tableId }],
+  anyTable: ['table'],
   homeTable: ['home-table'],
   homeNodes: (filter: Filter) => ['home-nodes', { filter }],
-  AnyfullTable: ['full-table'],
-  fullTable: (filter: Filter, columns: components["schemas"]["ColumnDefinition"][]) => (
-    ['full-table', { filter, columns }]
+  AnyfullTable: ['table'],
+  fullTable: (tableId: number) => (
+    ['table', { tableId }]
   ),
 }
 export function usePredicateQuery() {
@@ -80,35 +81,16 @@ export function useTableInOutQuery(isIn: boolean, nodeId: number) {
   })
   return query;
 }
-export function useFilterdNodesQuery(filter: Filter) {
-  return useQuery({
-    queryKey: ['home-nodes', { filter: filter }],
-    queryFn: async () => {
-      return (await client.POST("/table", {
-        body: {
-          direction: filter.direction === "any" ? null : filter.direction,
-          predicate: filter.predicate ?? null,
-          node_id: filter.anotherNode ?? null
-        }
-      }))?.data
-    },
-    //refetchInterval: 1000,
-    select: (data) => new Set((data ?? []).map(d => d.node_id))
-  });
-}
 
-export function useTableQuery(filter: Filter, columns : components["schemas"]["ColumnDefinition"][]) {
+export function useTableQuery(tableId: number) {
   return useQuery({
-    queryKey: QueriesKeys.fullTable(filter, columns),
+    queryKey: QueriesKeys.fullTable(tableId),
     queryFn: async () => (
-      (await client.POST("/full-table", {
-        body: {
-          filter: {
-            direction: filter.direction === "any" ? null : filter.direction,
-            predicate: filter.predicate ?? null,
-            node_id: filter.anotherNode ?? null
-          },
-          columns: columns
+      (await client.GET("/table/{id}", {
+        params: {
+          path: {
+            id: tableId
+          }
         }
       }
       ))?.data
@@ -221,4 +203,47 @@ export function useTripleDeleteMutation() {
     },
   })
   return mutatation;
+}
+
+
+export function useTablesQuery() {
+  return useQuery({
+    queryKey: QueriesKeys.anyTable,
+    queryFn: async () => (await client.GET("/tables", {
+      params: {
+
+      }
+    }))?.data,
+  })
+}
+
+
+export function useTable(tableId: number) {
+  return useQuery({
+    queryKey: QueriesKeys.anyTable,
+    queryFn: async () => (await client.GET("/tables"))?.data,
+    select: (data) => {
+      return data?.find((t) => t.id === tableId);
+    },
+  })
+}
+
+export function useTableUpdateMutation() {
+  const queryClient = useQueryClient();
+  const mutatation = useMutation({
+    mutationFn: async (data: { tableId : number,def: components["schemas"]["TableDefinition"] }) => {
+      queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
+      await client.PUT("/table/{id}", {
+        params: {
+          path: { id: data.tableId}
+        },
+        body: data.def
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.anyTable });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.AnyfullTable });
+    },
+  })
+  return mutatation
 }

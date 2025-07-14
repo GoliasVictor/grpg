@@ -43,7 +43,7 @@ async fn filter_values(filter: Filter, conn: &Connection<'_>) -> Vec<TableRow> {
     let x =  if filter.direction.is_none()  && filter.predicate.is_none() {
         "".to_string()
     } else {
-        format!("{}-[]-{}", node_str, rel_str)
+        format!("{} {}", rel_str, node_str)
     };
 
     let query = format!(
@@ -168,20 +168,27 @@ pub async fn table_rows(conn: &Connection<'_>, table_def: TableDefinition) -> Ve
 
     nodes_id.iter().map( |o| response.iter().filter(|r| r.node_id == *o).next().unwrap().clone()).collect::<Vec<RowResponse>>()
 }
+
 #[utoipa::path(
+    params(
+        ("id" = i32, Path, description = "Table ID")
+    ),
     request_body = TableDefinition,
     responses((status = 200, body = [RowResponse]))
 )]
-#[post("/full-table")]
-pub async fn full_table(
+#[put("/table/{id}")]
+pub async fn put_table(
     app_state: web::Data<AppState>,
     params: web::Json<TableDefinition>,
+    path: web::Path<i32>
 ) -> impl Responder {
-    let params = params.into_inner();
+    let id = path.into_inner();
+    let table = params.into_inner();
     let conn = app_state.establish_connection();
-    app_state.store.set_table(0, params.clone());
-    HttpResponse::Ok().json(table_rows(&conn, params).await)
+    app_state.store.set_table(id, table.clone());
+    HttpResponse::Ok().json(table_rows(&conn, table).await)
 }
+
 
 #[derive(Clone, Deserialize, Serialize, ToSchema)]
 pub struct Table {
@@ -208,7 +215,7 @@ pub async fn post_table(
     params(
         ("id" = i32, Path, description = "Table ID")
     ),
-    responses((status = 200, body = RowResponse))
+    responses((status = 200, body = Table))
 )]
 #[get("/table/{id}")]
 pub async fn get_table(

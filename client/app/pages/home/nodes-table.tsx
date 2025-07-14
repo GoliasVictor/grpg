@@ -61,6 +61,7 @@ import NodeBadgeTriple from "./node-badge-triple"
 import PredicatesComboBox from "../../components/predicates-combo-box"
 import { NewColumnDialog } from "./new-column-dialog"
 import TableFilterHead from "./table-filter-head"
+import TablesComboBox from "~/components/tables-combo-box"
 
 // Extend TableMeta to include nodeDeleteMutation
 declare module '@tanstack/react-table' {
@@ -83,7 +84,7 @@ type Column = {
   id: number;
   filter: {
     direction: "in" | "out" | null;
-    predicate_id: number;
+    predicate_id: number | null;
   };
 };
 export type NodesTableProps = {
@@ -237,7 +238,7 @@ const NodesTable = React.memo(function NodesTable({ data, columnsDef, onNewColum
         return (
           <DataTableColumnHeader
             column={column}
-            title={getPredicate(c.filter.predicate_id)?.label || ""}
+            title={c.filter.predicate_id != null ? getPredicate(c.filter.predicate_id)?.label || "" :  "undefined"}
             isIn={c.filter.direction == null ? null : c.filter.direction == "in"}
             onDeleteColumn={handleDeleteColumn}
             onChangeDirection={handleChangeDirection}
@@ -293,7 +294,6 @@ const NodesTable = React.memo(function NodesTable({ data, columnsDef, onNewColum
       },
     },
   ], [columnsDef]);
-
   const table = useReactTable({
     data,
     columns,
@@ -311,7 +311,7 @@ const NodesTable = React.memo(function NodesTable({ data, columnsDef, onNewColum
   })
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 gap-20 justify-between">
         <TableFilterHead filter={filter} onChangeFilter={setFilter} />
       </div>
       <div className="rounded-md border">

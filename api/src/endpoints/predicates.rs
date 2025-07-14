@@ -12,7 +12,7 @@ pub struct PostPredicate {
 }
 
 #[utoipa::path(
-    responses((status = 200)),
+    responses((status = 200, body = [Predicate])),
 )]
 #[get("/predicates")]
 pub async fn get_predicates(app_state: web::Data<AppState>) -> impl Responder {

@@ -4,22 +4,6 @@
  */
 
 export interface paths {
-    "/full-table": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["full_table"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/node": {
         parameters: {
             query?: never;
@@ -93,7 +77,39 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["table"];
+        post: operations["post_table"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/table/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_table"];
+        put: operations["put_table"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_tables"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -111,6 +127,22 @@ export interface paths {
         put?: never;
         post: operations["post_triple"];
         delete: operations["delete_triple"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/triples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_triples"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -142,10 +174,6 @@ export interface components {
             /** Format: int32 */
             predicate: number | null;
         };
-        GetTable: {
-            columns: components["schemas"]["ColumnDefinition"][];
-            filter: components["schemas"]["Filter"];
-        };
         /** @enum {string} */
         GraphDirection: "in" | "out";
         Node: {
@@ -170,12 +198,16 @@ export interface components {
             /** Format: int32 */
             node_id: number;
         };
-        TableRow: {
-            label?: string | null;
+        Table: {
+            def: components["schemas"]["TableDefinition"];
             /** Format: int32 */
-            node_id: number;
-            /** Format: int32 */
-            pid?: number | null;
+            id: number;
+            rows: components["schemas"]["RowResponse"][];
+        };
+        TableDefinition: {
+            columns: components["schemas"]["ColumnDefinition"][];
+            filter: components["schemas"]["Filter"];
+            label: string;
         };
         Triple: {
             /** Format: int32 */
@@ -194,29 +226,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    full_table: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GetTable"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RowResponse"][];
-                };
-            };
-        };
-    };
     get_node: {
         parameters: {
             query?: never;
@@ -340,11 +349,13 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Predicate"][];
+                };
             };
         };
     };
-    table: {
+    post_table: {
         parameters: {
             query?: never;
             header?: never;
@@ -353,7 +364,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Filter"];
+                "application/json": components["schemas"]["TableDefinition"];
             };
         };
         responses: {
@@ -362,7 +373,74 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TableRow"][];
+                    "application/json": components["schemas"]["RowResponse"][];
+                };
+            };
+        };
+    };
+    get_table: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Table ID */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Table"];
+                };
+            };
+        };
+    };
+    put_table: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Table ID */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TableDefinition"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RowResponse"][];
+                };
+            };
+        };
+    };
+    get_tables: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Table"][];
                 };
             };
         };
@@ -406,6 +484,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    get_triples: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Triple"][];
+                };
             };
         };
     };

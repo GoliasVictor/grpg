@@ -1,7 +1,9 @@
 import type { Route } from "./+types/home"
 import { useCallback, useState } from "react";
-import { client, useFilterdNodesQuery, useNodesQuery, useTableQuery } from "~/hooks/queries";
+import { client, useTableQuery, useTableUpdateMutation } from "~/hooks/queries";
 import { NodesTable } from "../pages/home/nodes-table";
+import TablesComboBox from "~/components/tables-combo-box";
+import type { components } from "~/lib/api/specs";
 
 
 export function meta({ }: Route.MetaArgs) {
@@ -17,36 +19,25 @@ type Filter = {
 }
 
 export async function clientLoader({ }: Route.LoaderArgs) {
+  console.log("clientLoader");
   return {
     predicates: (await client.GET("/predicates"))?.data || []
   }
 }
 
-export default function Home(this: any, { loaderData }: Route.ComponentProps) {
-  const { nodes } = useNodesQuery();
+export default function Home(this: any) {
   const [filter, setFilter] = useState<Filter>({
     direction: "any",
     anotherNode: null,
     predicate: null,
   });
-  const [columns, setCollumns] = useState<{
-    id: number,
-    filter: {
-      direction: "in" | "out" | null;
-      predicate_id: number
-    }
-  }[]>(loaderData.predicates.map((p) =>
-  ({
-    id: p.id,
-    filter: {
-      predicate_id: p.id,
-      direction: null,
-    }
-  })));
-  const filterdNodes = useFilterdNodesQuery(filter);
+  const [tableId, setTableId] = useState(0);
 
+  const tableUpdateMutation = useTableUpdateMutation();
 
-  const tableQuery = useTableQuery(filter, columns);
+  const tableQuery = useTableQuery(tableId);
+  const columns = tableQuery?.data?.def.columns!;
+
   const handleNewColumn = useCallback((newPid: number, newInOut: "in" | "out" | "any") => {
     setCollumns([
       ...columns,
@@ -81,14 +72,28 @@ export default function Home(this: any, { loaderData }: Route.ComponentProps) {
   const handleDeleteColumn = useCallback((id: number) => {
       setCollumns(columns.filter(c => c.id !== id));
   }, [columns]);
+
+  const setCollumns = useCallback((newColumns : components["schemas"]["ColumnDefinition"][]) => {
+    tableUpdateMutation.mutate({
+      tableId,
+      def: {
+        ...tableQuery.data?.def!,
+        columns: newColumns
+      }
+    });
+  },[tableUpdateMutation.mutate, tableQuery.data]);
+
   if (tableQuery.error) return 'An error has occurred: ' + tableQuery.error
   if (tableQuery.isLoading) return 'Loading...';
   return (
     <div className="flex flex-col h-screen w-screen items-center">
-      <div className="w-min flex-row flex" >
+      <div className="w-min flex-row flex py-10" >
         <div>
+          <div>
+            <TablesComboBox onChange={( d) => setTableId(d!)} value={tableId} />
+          </div>
           <NodesTable
-            data={tableQuery.data || []}
+            data={tableQuery.data?.rows || []}
             columnsDef={columns}
             filter={filter}
             setFilter={setFilter}
