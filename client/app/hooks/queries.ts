@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import createClient from "openapi-fetch";
 import type { components, paths } from "~/lib/api/specs";
 
-export const client = createClient<paths>({ baseUrl: "http://127.0.0.1:8000/" });
+export const client = createClient<paths>({ baseUrl: import.meta.env.VITE_API_URL });
 
 
 type Filter = {
