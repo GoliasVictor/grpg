@@ -86,7 +86,7 @@ pub async fn put_node(
 
     let conn = app_state.establish_connection();
 
-    let query = r#"``
+    let query = r#"
         MATCH (n:Node {id: $id})
         SET n.label = $label
         RETURN n.label;
