@@ -256,3 +256,22 @@ pub async fn get_tables(
     }
     HttpResponse::Ok().json(result)
 }
+
+#[utoipa::path(
+    params(
+        ("id" = i32, Path, description = "Table ID")
+    ),
+    responses((status = 200, body = String), (status = 404, body = String))
+)]
+#[delete("/tables/{id}")]
+pub async fn delete_table(
+    app_state: web::Data<AppState>,
+    path: web::Path<i32>,
+) -> impl Responder {
+    let id = path.into_inner();
+    if app_state.store.remove_table(id).is_some() {
+        HttpResponse::Ok().body(format!("Table {} deleted", id))
+    } else {
+        HttpResponse::NotFound().body("Table not found")
+    }
+}

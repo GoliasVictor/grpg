@@ -129,5 +129,12 @@ impl Store {
         self.save(store);
         next_id
     }
+    pub fn remove_table(&self, id: i32) -> Option<TableDefinition> {
+        let _lock = self.0.lock().unwrap();
+        let mut store = self.read();
+        let removed = store.tables.remove(&id);
+        self.save(store);
+        removed
+    }
 }
 

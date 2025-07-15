@@ -67,6 +67,7 @@ async fn main() -> Result<(), impl Error> {
                     .service(endpoints::table::get_table)
                     .service(endpoints::table::post_table)
                     .service(endpoints::table::get_tables)
+                    .service(endpoints::table::delete_table)
                     ;
             })
             .openapi_service(|api| {

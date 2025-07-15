@@ -67,20 +67,20 @@ export function useOneNodeQuery(id : number) {
 
 
 }
-export function useTableInOutQuery(isIn: boolean, nodeId: number) {
-  const query = useQuery({
-    queryKey: QueriesKeys.table(isIn, nodeId),
-    queryFn: async () => (await client.POST("/table", {
-      body: {
-        node_id: nodeId,
-        predicate: null,
-        direction: isIn ? "in" : "out",
-      }
-    }))?.data,
-    //refetchInterval: 1500,
-  })
-  return query;
-}
+// export function useTableInOutQuery(isIn: boolean, nodeId: number) {
+//   const query = useQuery({
+//     queryKey: QueriesKeys.table(isIn, nodeId),
+//     queryFn: async () => (await client.POST("/table", {
+//       body: {
+//         node_id: nodeId,
+//         predicate: null,
+//         direction: isIn ? "in" : "out",
+//       }
+//     }))?.data,
+//     //refetchInterval: 1500,
+//   })
+//   return query;
+// }
 
 export function useTableQuery(tableId: number) {
   return useQuery({
@@ -96,7 +96,7 @@ export function useTableQuery(tableId: number) {
       ))?.data
     ),
     placeholderData: keepPreviousData,
-    //refetchInterval: 1500,
+    refetchInterval: 1500,
   })
 }
 type Node = {
@@ -128,9 +128,7 @@ export function useNodesCreateMutation() {
     mutationFn: async (data: { label: string }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.nodes });
       await client.POST("/node", {
-        params: {
-          query: data
-        }
+        body: data
       })
     },
     onSuccess: () => {
@@ -246,4 +244,40 @@ export function useTableUpdateMutation() {
     },
   })
   return mutatation
+}
+
+export function useTableCreateMutation() {
+  const queryClient = useQueryClient();
+  const mutatation = useMutation({
+    mutationFn: async (data: { def: components["schemas"]["TableDefinition"] }) => {
+      queryClient.cancelQueries({ queryKey: QueriesKeys.anyTable });
+      await client.POST("/table", {
+        body: data.def
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.anyTable });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.AnyfullTable });
+    },
+  })
+  return mutatation;
+}
+
+export function useTableDeleteMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (data: { tableId: number }) => {
+      queryClient.cancelQueries({ queryKey: QueriesKeys.anyTable });
+      await client.DELETE("/tables/{id}", {
+        params: {
+          path: { id: data.tableId }
+        }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.anyTable });
+      queryClient.invalidateQueries({ queryKey: QueriesKeys.AnyfullTable });
+    },
+  });
+  return mutation;
 }

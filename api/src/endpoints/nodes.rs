@@ -4,22 +4,19 @@ use super::prelude::*;
 pub struct NodeResponse {
     pub node_id: i32,
 }
-#[derive(Deserialize, Serialize, IntoParams)]
+#[derive(Deserialize, Serialize, ToSchema, IntoParams)]
+#[into_params(parameter_in=Query)]
 pub struct NewNode {
     pub label: String
 }
 
 
 #[utoipa::path(
-    params(NewNode),
     responses((status = 200, body = NodeResponse))
 )]
 #[post("/node")]
-pub async fn post_node(app_state: web::Data<AppState>, label: web::Query<std::collections::HashMap<String, String>>) -> impl Responder {
-    let label = match label.get("label") {
-        Some(l) => l,
-        None => return HttpResponse::BadRequest().body("Missing label parameter"),
-    };
+pub async fn post_node(app_state: web::Data<AppState>, new_label: web::Json<NewNode>) -> impl Responder {
+    let label = new_label.into_inner().label;
 
     let conn = app_state.establish_connection();
 
@@ -89,7 +86,7 @@ pub async fn put_node(
 
     let conn = app_state.establish_connection();
 
-    let query = r#"
+    let query = r#"``
         MATCH (n:Node {id: $id})
         SET n.label = $label
         RETURN n.label;

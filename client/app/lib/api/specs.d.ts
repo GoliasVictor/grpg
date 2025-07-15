@@ -116,6 +116,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tables/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_table"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/triple": {
         parameters: {
             query?: never;
@@ -176,6 +192,9 @@ export interface components {
         };
         /** @enum {string} */
         GraphDirection: "in" | "out";
+        NewNode: {
+            label: string;
+        };
         Node: {
             label: string;
             /** Format: int32 */
@@ -249,12 +268,14 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                label: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewNode"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -441,6 +462,36 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Table"][];
+                };
+            };
+        };
+    };
+    delete_table: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Table ID */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
                 };
             };
         };

@@ -1,28 +1,16 @@
 tables:
-  0:
-    label: as
+  2:
+    label: Carlisto
     filter:
       node_id: null
       predicate: null
       direction: null
-    columns:
-    - id: 1
-      filter:
-        direction: out
-        predicate_id: 1
-    - id: 2
-      filter:
-        direction: in
-        predicate_id: 2
-    - id: 3
-      filter:
-        direction: null
-        predicate_id: 3
+    columns: []
   1:
-    label: Another Table
+    label: Another Tabl
     filter:
       node_id: null
-      predicate: null
+      predicate: 1
       direction: null
     columns:
     - id: 1
