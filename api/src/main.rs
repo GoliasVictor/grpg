@@ -77,7 +77,7 @@ async fn main() -> Result<(), impl Error> {
             .openapi_service(|api| Scalar::with_url("/scalar", api))
             .into_app()
     })
-    .bind(("127.0.0.1", 8000))?
+    .bind(("0.0.0.0", 8000))?
     .run()
     .await
 }

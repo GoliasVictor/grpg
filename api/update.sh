@@ -8,4 +8,4 @@ export PATH=$PATH:$RUST_DIRECTORY
 service grpg stop
 git pull
 cargo build --release
-service grpg start
+sudo service grpg start
