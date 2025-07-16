@@ -4,6 +4,7 @@ use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use std::env;
 use std::process::Command;
+use std::thread;
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -42,18 +43,21 @@ pub async fn github_webhook(req: HttpRequest, body: web::Bytes) -> impl Responde
     if !update_script.exists() {
         return HttpResponse::InternalServerError().body("Update script not found");
     }
+
+    // Run the update script in a separate thread
+    thread::spawn(move || {
+        let output = Command::new(&update_script)
+            .current_dir(current_dir)
+            .output()
+            .expect("Failed to execute update script");
+
+        if !output.status.success() {
+            eprintln!("Update script failed: {}", String::from_utf8_lossy(&output.stderr));
+        }
+    });
     
-    match Command::new(&update_script).output() {
-        Ok(output) => {
-            if output.status.success() {
-                HttpResponse::Ok().body("Webhook processed successfully")
-            } else {
-                let error = String::from_utf8_lossy(&output.stderr);
-                HttpResponse::InternalServerError().body(format!("Command failed: {}", error))
-            }
-        },
-        Err(e) => HttpResponse::InternalServerError().body(format!("Failed to execute command: {}", e)),
-    }
+    return HttpResponse::Ok().body("Webhook processed successfully");
+    
 }
 
 fn verify_signature(payload: &[u8], signature: &str, secret: &str) -> bool {
