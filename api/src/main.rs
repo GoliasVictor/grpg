@@ -11,6 +11,7 @@ use kuzu::{ Connection, Database, SystemConfig };
 use std::{
     sync::{Arc}
 };
+use crate::db::graph::GraphManager;
 use crate::db::base::Store;
 
 pub struct AppState {
@@ -20,6 +21,9 @@ pub struct AppState {
 impl AppState {
     fn establish_connection(&self) -> Connection {
         Connection::new(&self.db).unwrap()
+    }
+    pub fn graph(&self) -> GraphManager {
+        GraphManager { conn: self.establish_connection() }
     }
 }
 #[actix_web::main]

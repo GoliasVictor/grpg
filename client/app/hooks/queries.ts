@@ -96,7 +96,7 @@ export function useTableQuery(tableId: number) {
       ))?.data
     ),
     placeholderData: keepPreviousData,
-    refetchInterval: 1500,
+    // refetchInterval: 1500,
   })
 }
 type Node = {

@@ -1,5 +1,6 @@
 pub mod base;
 pub mod models;
+pub mod graph;
 use kuzu::{ Connection, Value, QueryResult };
 
 pub trait TryCast<T> {
