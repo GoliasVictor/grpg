@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use crate::endpoints::nodes::GraphDirection;
 use super::prelude::*;
-use crate::db::{
+use crate::db::models::{
     TableDefinition
 };
 

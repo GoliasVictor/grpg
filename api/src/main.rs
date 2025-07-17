@@ -11,10 +11,11 @@ use kuzu::{ Connection, Database, SystemConfig };
 use std::{
     sync::{Arc}
 };
+use crate::db::base::Store;
 
 pub struct AppState {
     db: Arc<Database>,
-    store: Arc<db::Store>,
+    store: Arc<Store>,
 }
 impl AppState {
     fn establish_connection(&self) -> Connection {
@@ -36,7 +37,7 @@ async fn main() -> Result<(), impl Error> {
 
     let app_data = Data::new(AppState {
         db: Arc::new(db),
-        store: Arc::new(db::Store::new()),
+        store: Arc::new(Store::new()),
     });
 
     HttpServer::new(move || {
