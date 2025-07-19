@@ -20,7 +20,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/node": {
+    "/settings/{setting_id}/node": {
         parameters: {
             query?: never;
             header?: never;
@@ -36,7 +36,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/node/{node_id}": {
+    "/settings/{setting_id}/node/{node_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -52,7 +52,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/predicate": {
+    "/settings/{setting_id}/predicate": {
         parameters: {
             query?: never;
             header?: never;
@@ -68,7 +68,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/predicates": {
+    "/settings/{setting_id}/predicates": {
         parameters: {
             query?: never;
             header?: never;
@@ -84,7 +84,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/table": {
+    "/settings/{setting_id}/table": {
         parameters: {
             query?: never;
             header?: never;
@@ -100,7 +100,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/table/{id}": {
+    "/settings/{setting_id}/table/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -116,7 +116,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/tables": {
+    "/settings/{setting_id}/tables": {
         parameters: {
             query?: never;
             header?: never;
@@ -132,7 +132,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/tables/{id}": {
+    "/settings/{setting_id}/tables/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -148,7 +148,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/triple": {
+    "/settings/{setting_id}/triple": {
         parameters: {
             query?: never;
             header?: never;
@@ -164,7 +164,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/triples": {
+    "/settings/{setting_id}/triples": {
         parameters: {
             query?: never;
             header?: never;
@@ -308,7 +308,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -327,7 +329,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -356,6 +360,7 @@ export interface operations {
             path: {
                 /** @description ID do nó a ser atualizado */
                 node_id: number;
+                setting_id: number;
             };
             cookie?: never;
         };
@@ -378,6 +383,7 @@ export interface operations {
             path: {
                 /** @description ID do nó a ser deletado */
                 node_id: number;
+                setting_id: number;
             };
             cookie?: never;
         };
@@ -397,7 +403,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -420,7 +428,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -439,7 +449,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -465,6 +477,7 @@ export interface operations {
             path: {
                 /** @description Table ID */
                 id: number;
+                setting_id: number;
             };
             cookie?: never;
         };
@@ -487,6 +500,7 @@ export interface operations {
             path: {
                 /** @description Table ID */
                 id: number;
+                setting_id: number;
             };
             cookie?: never;
         };
@@ -510,7 +524,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -532,6 +548,7 @@ export interface operations {
             path: {
                 /** @description Table ID */
                 id: number;
+                setting_id: number;
             };
             cookie?: never;
         };
@@ -559,7 +576,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -580,7 +599,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -601,7 +622,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;

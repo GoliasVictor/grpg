@@ -16,8 +16,8 @@ pub use crate::db::{
 };
 
 use crate::db::models::Filter;
-pub async fn filter_values(filter: Filter, conn: &Connection<'_>) -> Vec<i32> {
-   let mut params = Vec::new();
+pub async fn filter_values( conn: &Connection<'_>, setting: i32, filter: Filter) -> Vec<i32> {
+   let mut params = vec!(("setting", Value::Int64(setting as i64)));
 
     let triple_str = if let Some(pid) = filter.predicate {
         params.push(("pid", Value::Int64(pid as i64)));
@@ -34,9 +34,9 @@ pub async fn filter_values(filter: Filter, conn: &Connection<'_>) -> Vec<i32> {
 
     let node_str = if let Some(node_id) = filter.node_id {
         params.push(("node_id", Value::Int64(node_id as i64)));
-        "(:Node { id: $node_id })"
+        "(:Node { setting: $setting, id: $node_id })"
     } else {
-        "(:Node)"
+        "(:Node { setting: $setting })"
     };
     let x =  if filter.direction.is_none()  && filter.predicate.is_none() {
         "".to_string()
@@ -45,10 +45,9 @@ pub async fn filter_values(filter: Filter, conn: &Connection<'_>) -> Vec<i32> {
     };
 
     let query = format!(
-        "MATCH (n:Node) {} RETURN DISTINCT n.id AS id, n.label as label;",
+        "MATCH (n:Node {{setting: $setting}}) {} RETURN DISTINCT n.id AS id, n.label as label;",
         x
     );
-
     let result = conn.execute(&mut conn.prepare(&query).unwrap(), params).unwrap();
 
     let mut row : Vec<i32> = result
@@ -59,8 +58,8 @@ pub async fn filter_values(filter: Filter, conn: &Connection<'_>) -> Vec<i32> {
     row.sort();
     row
 }
-pub async fn table_rows(conn: &Connection<'_>, table_def: TableDefinition) -> Vec<RowResponse> {
-    let nodes_id = filter_values(table_def.filter, &conn).await;
+pub async fn table_rows(conn: &Connection<'_>, setting: i32, table_def: TableDefinition) -> Vec<RowResponse> {
+    let nodes_id = filter_values(&conn, setting, table_def.filter).await;
     if nodes_id.is_empty() {
         return Vec::<RowResponse>::new();
     }
@@ -78,20 +77,21 @@ pub async fn table_rows(conn: &Connection<'_>, table_def: TableDefinition) -> Ve
     }
 
     let query = r#"
-        MATCH (c:Node)-[r]->(a)
+        MATCH (c:Node {setting: $setting})-[r]->(a {setting: $setting})
         WHERE r.id in $out_ids and c.id in $nids
         RETURN c.id as rnid, a.id as nid, r.id as pid, 'out' as direction
         UNION ALL
-        MATCH (c:Node)<-[r]-(a)
+        MATCH (c:Node {setting: $setting})<-[r]-(a {setting: $setting})
         WHERE r.id in $in_ids and c.id in $nids
         RETURN c.id as rnid, a.id as nid, r.id as pid, 'in' as direction
         UNION ALL
-        MATCH (c:Node)-[r]-(a)
+        MATCH (c:Node {setting: $setting})-[r]-(a {setting: $setting})
         WHERE r.id in $any_ids and c.id in $nids
         RETURN c.id as rnid, a.id as nid, r.id as pid, 'any' as direction
     "#;
 
     let query_params = vec!(
+        ("setting", Value::Int64(setting as i64)),
         ("nids",    Value::List(LogicalType::Int64, nodes_id.iter().map(|&id| Value::Int64(id as i64)).collect())),
         ("out_ids", Value::List(LogicalType::Int64, out_ids.iter().map(|&id| Value::Int64(id as i64)).collect())),
         ("in_ids",  Value::List(LogicalType::Int64, in_ids.iter().map(|&id| Value::Int64(id as i64)).collect())),

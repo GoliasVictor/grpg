@@ -15,20 +15,22 @@ pub struct NewNode {
 #[utoipa::path(
     responses((status = 200, body = NodeResponse))
 )]
-#[post("/node")]
-pub async fn post_node(app_state: web::Data<AppState>, new_label: web::Json<NewNode>) -> impl Responder {
+#[post("/settings/{setting_id}/node")]
+pub async fn post_node(app_state: web::Data<AppState>, new_label: web::Json<NewNode>, path: web::Path<i32>) -> impl Responder {
+    let setting_id = path.into_inner();
     let label = new_label.into_inner().label;
     HttpResponse::Ok().json(NodeResponse {
-        node_id: app_state.graph().node_create(label.clone())
+        node_id: app_state.graph(setting_id).node_create(label.clone())
      })
 }
 
 #[utoipa::path(
     responses((status = 200, body = [Node]))
 )]
-#[get("/node")]
-pub async fn get_node(app_state: web::Data<AppState>) -> impl Responder {
-    HttpResponse::Ok().json(app_state.graph().node_all())
+#[get("/settings/{setting_id}/node")]
+pub async fn get_node(app_state: web::Data<AppState>, path: web::Path<i32>) -> impl Responder {
+    let setting_id = path.into_inner();
+    HttpResponse::Ok().json(app_state.graph(setting_id).node_all())
 }
 
 #[utoipa::path(
@@ -38,19 +40,19 @@ pub async fn get_node(app_state: web::Data<AppState>) -> impl Responder {
     ),
     responses((status = 200, body = Node))
 )]
-#[put("/node/{node_id}")]
+#[put("/settings/{setting_id}/node/{node_id}")]
 pub async fn put_node(
     app_state: web::Data<AppState>,
-    path: web::Path<i32>,
+    path: web::Path<(i32, i32)>,
     mut label: web::Query<std::collections::HashMap<String, String>>,
 ) -> impl Responder {
-    let node_id = path.into_inner();
+    let (setting_id, node_id) = path.into_inner();
     let label = match label.remove("label") {
         Some(l) => l,
         None => return HttpResponse::BadRequest().body("Missing label parameter"),
     };
 
-    HttpResponse::Ok().json(app_state.graph().node_update(node_id, label))
+    HttpResponse::Ok().json(app_state.graph(setting_id).node_update(node_id, label))
 }
 
 
@@ -61,11 +63,11 @@ pub async fn put_node(
     ),
     responses((status = 200, body = NodeResponse))
 )]
-#[delete("/node/{node_id}")]
-pub async fn delete_node(app_state: web::Data<AppState>, path: web::Path<i32>) -> impl Responder {
-    let node_id = path.into_inner();
+#[delete("/settings/{setting_id}/node/{node_id}")]
+pub async fn delete_node(app_state: web::Data<AppState>, path: web::Path<(i32, i32)>) -> impl Responder {
+    let (setting_id, node_id) = path.into_inner();
 
-    app_state.graph().node_delete(node_id);
+    app_state.graph(setting_id).node_delete(node_id);
 
     HttpResponse::Ok().json(NodeResponse { node_id })
 }

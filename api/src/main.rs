@@ -22,8 +22,11 @@ impl AppState {
     fn establish_connection(&self) -> Connection {
         Connection::new(&self.db).unwrap()
     }
-    pub fn graph(&self) -> GraphManager {
-        GraphManager { conn: self.establish_connection() }
+    pub fn graph(&self, setting_id: i32) -> GraphManager {
+        GraphManager {
+            conn: self.establish_connection(),
+            setting: setting_id
+        }
     }
 }
 #[actix_web::main]

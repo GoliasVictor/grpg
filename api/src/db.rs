@@ -41,6 +41,14 @@ impl<T> TryFromValue for T where Value: TryCast<T> {
 
 pub trait QueryResultUtil {
     fn single<K: TryFromValue>(self) -> Option<K>;
+
+}
+pub trait ConnectionUtil {
+    fn query_with_params(
+        &self,
+        query: &str,
+        params: Vec<(&str, QueryValue)>
+    ) -> Result<QueryResult<'_>, kuzu::Error>;
 }
 impl QueryResultUtil for QueryResult<'_> {
     fn single<K: TryFromValue>(self) -> Option<K> {
@@ -49,10 +57,39 @@ impl QueryResultUtil for QueryResult<'_> {
         K::from_value(value)
     }
 }
+pub struct QueryValue(Value);
+impl Into<QueryValue> for i32 {
+    fn into(self) -> QueryValue {
+        QueryValue(Value::Int64(self as i64))
+    }
+}
+impl Into<QueryValue> for String {
+    fn into(self) -> QueryValue {
+        QueryValue(Value::String(self))
+    }
+}
+impl Into<QueryValue> for &str {
+    fn into(self) -> QueryValue {
+        QueryValue(Value::String(self.to_string()))
+    }
+}
+
+impl ConnectionUtil for Connection<'_> {
+    fn query_with_params(
+        &self,
+        query: &str,
+        params: Vec<(&str, QueryValue)>
+    ) -> Result<QueryResult<'_>, kuzu::Error> {
+        let params: Vec<(&str, Value)> = params.into_iter()
+            .map(|(name, value)| (name, value.0))
+            .collect();
+        self.execute(&mut self.prepare(query).unwrap(), params)
+    }
+}
 pub fn create_db(conn: &Connection) {
     let _ = conn.query(
-        "CREATE NODE TABLE IF NOT EXISTS Node(id SERIAL, label STRING, PRIMARY KEY (id));
-        CREATE NODE TABLE IF NOT EXISTS Predicate(id SERIAL, label STRING, PRIMARY KEY (id));
+        "CREATE NODE TABLE IF NOT EXISTS Node(id SERIAL, setting INT, label STRING, __id SERIAL, PRIMARY KEY(__id) );
+        CREATE NODE TABLE IF NOT EXISTS Predicate(id SERIAL, setting INT, label STRING, __id SERIAL, PRIMARY KEY (__id));
         CREATE REL TABLE IF NOT EXISTS Triple(FROM Node TO Node, id INT64);"
-    );
+    ).unwrap();
 }

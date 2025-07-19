@@ -1,0 +1,8 @@
+\\ V_{io} = \{v_{in}, v_{out}\}
+\\ V_{ti} =  V \cup V_{io}\cup V_{any}
+\\ E_{ti} =  \{ (v_1, v_2, l):  v_1,v_2 \in V_{ti} \land l \in L\}
+
+\\ Q : (V\cross E) \cross V_{ti} \cross E_{ti}\to E 
+\\ Q(G, I) =  E_o 
+\\ F(V, o) = \{f| f: V_{ti} \to V \land (\forall v \in V, f(v) = v) \land f(v_{in}) = o_{v1} \land f(v_{out}) = o_{v_2} \}
+\\ \forall o \in E_{o}  \exists f \in F(G_V, o) \forall e \in I_E,(f(e_{v1}), f(e_{v2}), e_l) \in E

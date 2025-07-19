@@ -10,6 +10,7 @@ type Filter = {
   direction: "in" | "out" | "any";
   anotherNode: number | null;
 }
+export const setting_id = 1;
 const QueriesKeys = {
   nodes: ['nodes'],
   predicates: ['predicates'],
@@ -25,7 +26,13 @@ const QueriesKeys = {
 export function usePredicateQuery() {
   const predicatesQuery = useQuery({
     queryKey: QueriesKeys.predicates,
-    queryFn: async () => (await client.GET("/predicates"))?.data,
+    queryFn: async () => (await client.GET("/settings/{setting_id}/predicates", {
+      params: {
+        path: {
+           setting_id
+        }
+      }
+    }))?.data,
     staleTime: Infinity
   })
 
@@ -41,7 +48,13 @@ export function usePredicateQuery() {
 export function useNodesQuery({subscribed} : {subscribed?: boolean} = { }) {
   const query = useQuery({
     queryKey:  QueriesKeys.nodes,
-    queryFn: async () => (await client.GET("/node"))?.data,
+    queryFn: async () => (await client.GET("/settings/{setting_id}/node", {
+      params: {
+        path: {
+           setting_id
+        }
+      }
+    }))?.data,
     staleTime: Infinity,
     subscribed: subscribed,
   })
@@ -58,7 +71,13 @@ export function useNodesQuery({subscribed} : {subscribed?: boolean} = { }) {
 export function useOneNodeQuery(id : number) {
   return useQuery({
     queryKey: QueriesKeys.nodes,
-    queryFn: async () => (await client.GET("/node"))?.data,
+    queryFn: async () => (await client.GET("/settings/{setting_id}/node", {
+      params: {
+        path: {
+           setting_id
+        }
+      }
+    }))?.data,
     staleTime: Infinity,
     select: (data) => {
       return data?.find((n: { node_id: number }) => n.node_id === id);
@@ -86,9 +105,10 @@ export function useTableQuery(tableId: number) {
   return useQuery({
     queryKey: QueriesKeys.fullTable(tableId),
     queryFn: async () => (
-      (await client.GET("/table/{id}", {
+      (await client.GET("/settings/{setting_id}/table/{id}", {
         params: {
           path: {
+            setting_id: setting_id,
             id: tableId
           }
         }
@@ -108,9 +128,12 @@ export function useNodesUpdateMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { nodeId: number, label: string }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
-      await client.PUT("/node/{node_id}", {
+      await client.PUT("/settings/{setting_id}/node/{node_id}", {
         params: {
-          path: { node_id: data.nodeId },
+          path: {
+            setting_id: setting_id,
+            node_id: data.nodeId
+          },
           query: { label: data.label }
         }
       })
@@ -127,7 +150,12 @@ export function useNodesCreateMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { label: string }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.nodes });
-      await client.POST("/node", {
+      await client.POST("/settings/{setting_id}/node", {
+        params: {
+          path: {
+            setting_id
+          }
+        },
         body: data
       })
     },
@@ -145,9 +173,12 @@ export function useNodesDeleteMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { nodeId: number }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.nodes });
-      await client.DELETE("/node/{node_id}", {
+      await client.DELETE("/settings/{setting_id}/node/{node_id}", {
         params: {
-          path: { node_id: data.nodeId }
+          path: {
+            setting_id: setting_id,
+            node_id: data.nodeId
+          }
         }
       })
     },
@@ -166,7 +197,12 @@ export function useTripleCreateMutation() {
     mutationFn: async (data: { objectId: number, predicateId: number, subjectId: number }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
       queryClient.cancelQueries({ queryKey: QueriesKeys.AnyfullTable });
-      await client.POST("/triple", {
+      await client.POST("/settings/{setting_id}/triple", {
+        params: {
+          path: {
+            setting_id
+          }
+        },
         body: {
           object_id: data.objectId,
           predicate_id: data.predicateId,
@@ -187,7 +223,12 @@ export function useTripleDeleteMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { objectId: number, predicateId: number, subjectId: number }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
-      await client.DELETE("/triple", {
+      await client.DELETE("/settings/{setting_id}/triple", {
+        params: {
+          path: {
+            setting_id
+          }
+        },
         body: {
           object_id: data.objectId,
           predicate_id: data.predicateId,
@@ -207,10 +248,12 @@ export function useTripleDeleteMutation() {
 export function useTablesQuery() {
   return useQuery({
     queryKey: QueriesKeys.anyTable,
-    queryFn: async () => (await client.GET("/tables", {
+    queryFn: async () => (await client.GET("/settings/{setting_id}/tables", {
       params: {
-
-      }
+        path: {
+          setting_id
+        }
+      },
     }))?.data,
   })
 }
@@ -219,7 +262,13 @@ export function useTablesQuery() {
 export function useTable(tableId: number) {
   return useQuery({
     queryKey: QueriesKeys.anyTable,
-    queryFn: async () => (await client.GET("/tables"))?.data,
+    queryFn: async () => (await client.GET("/settings/{setting_id}/tables", {
+      params: {
+        path: {
+          setting_id
+        }
+      },
+    }))?.data,
     select: (data) => {
       return data?.find((t) => t.id === tableId);
     },
@@ -231,9 +280,12 @@ export function useTableUpdateMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { tableId : number,def: components["schemas"]["TableDefinition"] }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
-      await client.PUT("/table/{id}", {
+      await client.PUT("/settings/{setting_id}/table/{id}", {
         params: {
-          path: { id: data.tableId}
+          path: {
+            setting_id: setting_id,
+            id: data.tableId
+          }
         },
         body: data.def
       })
@@ -251,7 +303,12 @@ export function useTableCreateMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { def: components["schemas"]["TableDefinition"] }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.anyTable });
-      await client.POST("/table", {
+      await client.POST("/settings/{setting_id}/table", {
+        params: {
+          path: {
+            setting_id
+          }
+        },
         body: data.def
       })
     },
@@ -268,9 +325,12 @@ export function useTableDeleteMutation() {
   const mutation = useMutation({
     mutationFn: async (data: { tableId: number }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.anyTable });
-      await client.DELETE("/tables/{id}", {
+      await client.DELETE("/settings/{setting_id}/tables/{id}", {
         params: {
-          path: { id: data.tableId }
+          path: {
+            setting_id: setting_id,
+            id: data.tableId
+          }
         }
       });
     },

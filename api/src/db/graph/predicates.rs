@@ -8,9 +8,13 @@ pub use crate::db::{
 pub use crate::db::models::{
     Predicate
 };
+use crate::db::ConnectionUtil;
 
-pub fn predicate_all(conn: &Connection<'_>) -> Vec<Predicate> {
-    let result = conn.query("MATCH (p:Predicate) RETURN p.id, p.label AS label").unwrap();
+pub fn predicate_all(conn: &Connection<'_>, setting: i32,) -> Vec<Predicate> {
+    let result = conn.query_with_params(
+        "MATCH (p:Predicate {setting: $setting}) RETURN p.id, p.label AS label",
+        vec!(("setting", setting.into()))
+    ).unwrap();
     let predicates : Vec<Predicate> = result
         .into_iter()
         .map(|row| Predicate {
@@ -24,11 +28,15 @@ pub fn predicate_all(conn: &Connection<'_>) -> Vec<Predicate> {
 
 pub fn predicate_create(
     conn: &Connection<'_>,
+    setting: i32,
     label: &str,
 ) -> Predicate {
 
     let result = conn
-        .query("MATCH (p:Predicate) RETURN MAX(p.id) AS id")
+        .query_with_params(
+            "MATCH (p:Predicate {setting: $setting}) RETURN MAX(p.id) AS id",
+            vec![("setting", setting.into())]
+        )
         .unwrap();
     let last_id: i32 = result
         .into_iter()
@@ -39,8 +47,12 @@ pub fn predicate_create(
     let id = last_id + 1;
     let create_result = conn
         .execute(
-            &mut conn.prepare("CREATE (p:Predicate {label: $label, id: $id}) RETURN p.id").unwrap(),
-            vec!(("label", Value::from(label)), ("id", Value::from(id))),
+            &mut conn.prepare("CREATE (p:Predicate {label: $label, id: $id, setting: $setting}) RETURN p.id").unwrap(),
+            vec!(
+                ("label", Value::from(label)),
+                ("id", Value::from(id)),
+                ("setting", Value::Int64(setting as i64))
+            ),
         )
         .unwrap();
     let new_id: i32 = create_result

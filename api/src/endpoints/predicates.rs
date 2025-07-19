@@ -9,9 +9,10 @@ pub struct PostPredicate {
 #[utoipa::path(
     responses((status = 200, body = [Predicate])),
 )]
-#[get("/predicates")]
-pub async fn get_predicates(app_state: web::Data<AppState>) -> impl Responder {
-    HttpResponse::Ok().json(app_state.graph().predicate_all())
+#[get("/settings/{setting_id}/predicates")]
+pub async fn get_predicates(app_state: web::Data<AppState>, path: web::Path<i32>) -> impl Responder {
+    let setting_id = path.into_inner();
+    HttpResponse::Ok().json(app_state.graph(setting_id).predicate_all())
 }
 
 
@@ -19,10 +20,12 @@ pub async fn get_predicates(app_state: web::Data<AppState>) -> impl Responder {
     request_body = PostPredicate,
     responses((status = 200, body = Predicate)),
 )]
-#[post("/predicate")]
+#[post("/settings/{setting_id}/predicate")]
 pub async fn post_predicate(
     app_state: web::Data<AppState>,
     predicate: web::Json<PostPredicate>,
+    path: web::Path<i32>,
 ) -> impl Responder {
-    HttpResponse::Ok().json(app_state.graph().predicate_create(&predicate.label))
+    let setting_id = path.into_inner();
+    HttpResponse::Ok().json(app_state.graph(setting_id).predicate_create(&predicate.label))
 }

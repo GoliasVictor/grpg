@@ -5,21 +5,27 @@ use kuzu::{
 };
 use crate::db::QueryResultUtil;
 use crate::db::models::Node;
+use crate::db::ConnectionUtil;
 
 pub fn node_create(
     conn: &Connection<'_>,
+    setting: i32,
     label: String
 )  -> i32 {
 
-    let result = conn.query("MATCH (n:Node) RETURN MAX(n.id) AS id;").unwrap();
+    let result = conn.query_with_params(
+        "MATCH (n:Node {setting: $setting}) RETURN MAX(n.id) AS id;",
+        vec![("setting", setting.into())]
+    ).unwrap();
     let last_id : i32 = result.single().unwrap_or(0);
 
     let query = r#"
-        CREATE (n:Node {id: $id, label: $label})
+        CREATE (n:Node {setting: $setting, id: $id, label: $label})
         RETURN n.id;
     "#;
 
     let params = vec!(
+        ("setting", Value::Int64(setting as i64)),
         ("id", Value::Int64((last_id + 1) as i64)),
         ("label", Value::String(label.clone()))
     );
@@ -31,8 +37,12 @@ pub fn node_create(
 
 pub fn node_all(
     conn: &Connection<'_>,
+    setting: i32
 ) -> Vec<Node> {
-    let result = conn.query("MATCH (n:Node) RETURN n.id AS id, n.label as label;").unwrap();
+    let result = conn.query_with_params(
+        "MATCH (n:Node {setting: $setting}) RETURN n.id AS id, n.label as label;",
+        vec![("setting", setting.into())]
+    ).unwrap();
 
     let nodes: Vec<Node> = result
         .into_iter()
@@ -46,11 +56,12 @@ pub fn node_all(
 
 pub fn node_update(
     conn: &Connection<'_>,
+    setting: i32,
     node_id: i32,
     label: String
 ) -> Node {
     let query = r#"
-        MATCH (n:Node {id: $id})
+        MATCH (n:Node {id: $id, setting: $setting})
         SET n.label = $label
         RETURN n.label;
     "#;
@@ -58,6 +69,7 @@ pub fn node_update(
     let params = vec![
         ("id", Value::Int64(node_id as i64)),
         ("label", Value::String(label.clone())),
+        ("setting", Value::Int64(setting as i64))
     ];
 
     let result = conn.execute(&mut conn.prepare(query).unwrap(), params).unwrap();
@@ -71,14 +83,16 @@ pub fn node_update(
 
 pub fn node_delete(
     conn: &Connection<'_>,
+    setting: i32,
     node_id: i32,
 ) -> () {
     let query = r#"
-        MATCH (n:Node {id: $id}) DETACH DELETE n;
+        MATCH (n:Node {id: $id, setting: $setting}) DETACH DELETE n;
     "#;
 
     let params = vec![
-        ("id", Value::Int64(node_id as i64))
+        ("id", Value::Int64(node_id as i64)),
+        ("setting", Value::Int64(setting as i64))
     ];
 
     let _ = conn.execute(&mut conn.prepare(query).unwrap(), params);

@@ -18,16 +18,16 @@ pub struct TableRow {
     request_body = TableDefinition,
     responses((status = 200, body = [RowResponse]))
 )]
-#[put("/table/{id}")]
+#[put("/settings/{setting_id}/table/{id}")]
 pub async fn put_table(
     app_state: web::Data<AppState>,
     params: web::Json<TableDefinition>,
-    path: web::Path<i32>
+    path: web::Path<(i32, i32)>
 ) -> impl Responder {
-    let id = path.into_inner();
+    let (setting_id, id) = path.into_inner();
     let table = params.into_inner();
-    app_state.store.set_table(id, table.clone());
-    HttpResponse::Ok().json(app_state.graph().table_rows(table).await)
+    app_state.store.conn(setting_id).set_table(id, table.clone());
+    HttpResponse::Ok().json(app_state.graph(setting_id).table_rows(table).await)
 }
 
 
@@ -41,14 +41,16 @@ pub struct Table {
 #[utoipa::path(
     responses((status = 200, body = [RowResponse]))
 )]
-#[post("/table")]
+#[post("/settings/{setting_id}/table")]
 pub async fn post_table(
     app_state: web::Data<AppState>,
     params: web::Json<TableDefinition>,
+    path: web::Path<i32>
 ) -> impl Responder {
+    let setting_id = path.into_inner();
     let table = params.into_inner();
-    app_state.store.add_table(table.clone());
-    HttpResponse::Ok().json(app_state.graph().table_rows(table).await)
+    app_state.store.conn(1).add_table(table.clone());
+    HttpResponse::Ok().json(app_state.graph(setting_id).table_rows(table).await)
 }
 
 #[utoipa::path(
@@ -57,14 +59,14 @@ pub async fn post_table(
     ),
     responses((status = 200, body = Table))
 )]
-#[get("/table/{id}")]
+#[get("/settings/{setting_id}/table/{id}")]
 pub async fn get_table(
     app_state: web::Data<AppState>,
-    path: web::Path<i32>,
+    path: web::Path<(i32, i32)>,
 ) -> impl Responder {
-    let id = path.into_inner();
-    if let Some(table_def) = app_state.store.get_table(id) {
-        let rows = app_state.graph().table_rows(table_def.clone()).await;
+    let (setting_id, id) = path.into_inner();
+    if let Some(table_def) = app_state.store.conn(1).get_table(id) {
+        let rows = app_state.graph(setting_id).table_rows(table_def.clone()).await;
         HttpResponse::Ok().json( Table {
             id: id,
             def: table_def,
@@ -78,14 +80,16 @@ pub async fn get_table(
 #[utoipa::path(
     responses((status = 200, body = [Table]))
 )]
-#[get("/tables")]
+#[get("/settings/{setting_id}/tables")]
 pub async fn get_tables(
     app_state: web::Data<AppState>,
+    path: web::Path<i32>,
 ) -> impl Responder {
-    let tables = app_state.store.get_tables();
+    let tables = app_state.store.conn(1).get_tables();
+    let setting_id = path.into_inner();
     let mut result = Vec::new();
     for (id, def) in tables {
-        let rows = app_state.graph().table_rows(def.clone()).await;
+        let rows = app_state.graph(setting_id).table_rows(def.clone()).await;
         result.push(Table {
             id,
             def: def.clone(),
@@ -101,13 +105,13 @@ pub async fn get_tables(
     ),
     responses((status = 200, body = String), (status = 404, body = String))
 )]
-#[delete("/tables/{id}")]
+#[delete("/settings/{setting_id}/tables/{id}")]
 pub async fn delete_table(
     app_state: web::Data<AppState>,
     path: web::Path<i32>,
 ) -> impl Responder {
     let id = path.into_inner();
-    if app_state.store.remove_table(id).is_some() {
+    if app_state.store.conn(1).remove_table(id).is_some() {
         HttpResponse::Ok().body(format!("Table {} deleted", id))
     } else {
         HttpResponse::NotFound().body("Table not found")

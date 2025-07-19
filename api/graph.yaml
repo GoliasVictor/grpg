@@ -1,19 +1,33 @@
-tables:
-  2:
-    label: Carlisto
-    filter:
-      node_id: null
-      predicate: null
-      direction: null
-    columns: []
+graphs:
   1:
-    label: Another Tabl
-    filter:
-      node_id: null
-      predicate: 1
-      direction: null
-    columns:
-    - id: 1
-      filter:
-        direction: out
-        predicate_id: 1
+    tables:
+      1:
+        label: New Table
+        filter:
+          node_id: null
+          predicate: null
+          direction: null
+        columns: []
+      2:
+        label: New Table
+        filter:
+          node_id: null
+          predicate: null
+          direction: null
+        columns: []
+  0:
+    tables:
+      2:
+        label: New Table
+        filter:
+          node_id: null
+          predicate: null
+          direction: null
+        columns: []
+      1:
+        label: 'New Tabledasd '
+        filter:
+          node_id: null
+          predicate: null
+          direction: null
+        columns: []
