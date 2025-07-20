@@ -1,4 +1,5 @@
 mod setting_manager;
+mod user_settings_manager;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
@@ -6,13 +7,17 @@ use crate::db::models::{
     TableDefinition,
     UserData
 };
-use setting_manager::SettingManager;
+use crate::db::base::{
+    setting_manager::SettingManager,
+    user_settings_manager::UserSettingsManager
+};
 type Tables = HashMap<i32, TableDefinition>;
 
 #[derive(Deserialize, Serialize)]
-struct SettingData {
+pub struct SettingData {
     pub tables: Tables,
     pub user_id: i32,
+    pub name: String
 }
 
 #[derive(Deserialize, Serialize)]
@@ -33,6 +38,17 @@ impl Store {
             store: self,
             setting
         }
+    }
+    pub fn user_settings(&self, user_id: i32) -> UserSettingsManager {
+        UserSettingsManager {
+            store: self,
+            user_id
+        }
+    }
+
+    pub fn get_setting(&self, setting_id: i32) -> Option<SettingData> {
+        let _lock = self.0.lock().unwrap();
+        self.read().settings.remove(&setting_id)
     }
 
     pub fn add_user(&self, name: String) -> i32 {
