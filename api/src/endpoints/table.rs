@@ -110,8 +110,7 @@ pub async fn delete_table(
     app_state: web::Data<AppState>,
     path: web::Path<(i32, i32)>,
 ) -> impl Responder {
-    let id = path.into_inner();
-    let setting_id = path.into_inner();
+    let (setting_id, id) = path.into_inner();
     if app_state.store.conn(setting_id).remove_table(id).is_some() {
         HttpResponse::Ok().body(format!("Table {} deleted", id))
     } else {
