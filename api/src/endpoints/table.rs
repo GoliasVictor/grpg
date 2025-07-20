@@ -49,7 +49,7 @@ pub async fn post_table(
 ) -> impl Responder {
     let setting_id = path.into_inner();
     let table = params.into_inner();
-    app_state.store.conn(1).add_table(table.clone());
+    app_state.store.conn(setting_id).add_table(table.clone());
     HttpResponse::Ok().json(app_state.graph(setting_id).table_rows(table).await)
 }
 
@@ -65,7 +65,7 @@ pub async fn get_table(
     path: web::Path<(i32, i32)>,
 ) -> impl Responder {
     let (setting_id, id) = path.into_inner();
-    if let Some(table_def) = app_state.store.conn(1).get_table(id) {
+    if let Some(table_def) = app_state.store.conn(setting_id).get_table(id) {
         let rows = app_state.graph(setting_id).table_rows(table_def.clone()).await;
         HttpResponse::Ok().json( Table {
             id: id,
@@ -85,8 +85,8 @@ pub async fn get_tables(
     app_state: web::Data<AppState>,
     path: web::Path<i32>,
 ) -> impl Responder {
-    let tables = app_state.store.conn(1).get_tables();
     let setting_id = path.into_inner();
+    let tables = app_state.store.conn(setting_id).get_tables();
     let mut result = Vec::new();
     for (id, def) in tables {
         let rows = app_state.graph(setting_id).table_rows(def.clone()).await;
@@ -108,10 +108,11 @@ pub async fn get_tables(
 #[delete("/settings/{setting_id}/tables/{id}")]
 pub async fn delete_table(
     app_state: web::Data<AppState>,
-    path: web::Path<i32>,
+    path: web::Path<(i32, i32)>,
 ) -> impl Responder {
     let id = path.into_inner();
-    if app_state.store.conn(1).remove_table(id).is_some() {
+    let setting_id = path.into_inner();
+    if app_state.store.conn(setting_id).remove_table(id).is_some() {
         HttpResponse::Ok().body(format!("Table {} deleted", id))
     } else {
         HttpResponse::NotFound().body("Table not found")

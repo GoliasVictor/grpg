@@ -18,7 +18,7 @@ pub struct StoreData {
 
 #[derive(Deserialize, Serialize)]
 pub struct Store(Mutex<()>);
-pub struct StoreConn<'a> {
+pub struct SettingStoreConn<'a> {
     pub store: &'a Store,
     pub setting: i32,
 }
@@ -26,14 +26,14 @@ impl Store {
     pub fn new() -> Self {
         Store(Mutex::new(()))
     }
-    pub fn conn(&self, setting: i32) -> StoreConn {
-        StoreConn {
+    pub fn conn(&self, setting: i32) -> SettingStoreConn {
+        SettingStoreConn {
             store: self,
             setting
         }
     }
 }
-impl StoreConn<'_> {
+impl SettingStoreConn<'_> {
     fn read(&self) -> StoreData {
         if let Ok(f) = std::fs::File::open("graph.yaml") {
             return serde_yaml::from_reader(f).unwrap();
