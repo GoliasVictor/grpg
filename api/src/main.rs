@@ -61,6 +61,9 @@ async fn main() -> Result<(), impl Error> {
             .map(|app| app.wrap(Logger::default()))
             .configure(|config: &mut ServiceConfig| {
                 config
+                    .service(endpoints::users::post_user)
+                    .service(endpoints::users::get_users)
+                    .service(endpoints::users::get_user_by_id)
                     .service(endpoints::predicates::get_predicates)
                     .service(endpoints::predicates::post_predicate)
                     .service(endpoints::nodes::post_node)

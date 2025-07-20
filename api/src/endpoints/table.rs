@@ -16,7 +16,10 @@ pub struct TableRow {
         ("id" = i32, Path, description = "Table ID")
     ),
     request_body = TableDefinition,
-    responses((status = 200, body = [RowResponse]))
+    responses(
+        (status = 200, body = [RowResponse]),
+        (status = 404, body = String)
+    )
 )]
 #[put("/settings/{setting_id}/table/{id}")]
 pub async fn put_table(
@@ -26,8 +29,11 @@ pub async fn put_table(
 ) -> impl Responder {
     let (setting_id, id) = path.into_inner();
     let table = params.into_inner();
-    app_state.store.conn(setting_id).set_table(id, table.clone());
-    HttpResponse::Ok().json(app_state.graph(setting_id).table_rows(table).await)
+    if let Ok(_) = app_state.store.conn(setting_id).set_table(id, table.clone()) {
+        HttpResponse::Ok().json(app_state.graph(setting_id).table_rows(table).await)
+    } else {
+        HttpResponse::NotFound().body("Table not found")
+    }
 }
 
 
@@ -49,8 +55,12 @@ pub async fn post_table(
 ) -> impl Responder {
     let setting_id = path.into_inner();
     let table = params.into_inner();
-    app_state.store.conn(setting_id).add_table(table.clone());
-    HttpResponse::Ok().json(app_state.graph(setting_id).table_rows(table).await)
+    if let None = app_state.store.conn(setting_id).add_table(table.clone()) {
+        HttpResponse::InternalServerError().body("Failed to create table")
+    } else {
+        HttpResponse::Ok().json(app_state.graph(setting_id).table_rows(table).await)
+    }
+
 }
 
 #[utoipa::path(
@@ -88,7 +98,7 @@ pub async fn get_tables(
     let setting_id = path.into_inner();
     let tables = app_state.store.conn(setting_id).get_tables();
     let mut result = Vec::new();
-    for (id, def) in tables {
+    for (id, def) in tables.unwrap() {
         let rows = app_state.graph(setting_id).table_rows(def.clone()).await;
         result.push(Table {
             id,

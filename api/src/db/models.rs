@@ -1,6 +1,13 @@
 use serde::{Deserialize, Serialize};
 use utoipa::{ToSchema};
 
+
+#[derive(Deserialize, Serialize, ToSchema)]
+pub struct UserData {
+    pub id: i32,
+    pub name: String,
+}
+
 #[derive(Deserialize, Serialize, ToSchema)]
 pub struct Node {
     pub node_id: i32,
