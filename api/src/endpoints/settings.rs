@@ -14,7 +14,11 @@ struct Setting {
     pub user_id: i32
 }
 
-#[utoipa::path(request_body = PostSetting, responses((status = 200, body = Setting)))]
+#[utoipa::path(
+    tags=["settings"],
+    request_body = PostSetting,
+    responses((status = 200, body = Setting))
+)]
 #[post("/settings")]
 pub async fn post_setting(
     app_state: web::Data<AppState>,
@@ -33,10 +37,13 @@ pub async fn post_setting(
         )
 }
 
-#[utoipa::path(responses(
-    (status = 200, body = [Setting]),
-    (status = 404, description = "User not found")
-))]
+#[utoipa::path(
+    tags=["settings"],
+    responses(
+        (status = 200, body = [Setting]),
+        (status = 404, description = "User not found")
+    )
+)]
 #[get("/settings/{setting_id}")]
 pub async fn get_setting_by_id(app_state: web::Data<AppState>, path: web::Path<i32>) -> impl Responder {
     let setting_id = path.into_inner();
@@ -55,6 +62,7 @@ struct GetSettingsQuery {
     user_id: i32
 }
 #[utoipa::path(
+    tags=["settings"],
     params(
         ("user_id" = i32, Query, description = "User ID")
     ),

@@ -12,6 +12,7 @@ pub struct TableRow {
 
 
 #[utoipa::path(
+    tags=["tables"],
     params(
         ("id" = i32, Path, description = "Table ID")
     ),
@@ -45,6 +46,7 @@ pub struct Table {
 }
 
 #[utoipa::path(
+    tags=["tables"],
     responses((status = 200, body = [RowResponse]))
 )]
 #[post("/settings/{setting_id}/table")]
@@ -64,6 +66,7 @@ pub async fn post_table(
 }
 
 #[utoipa::path(
+    tags=["tables"],
     params(
         ("id" = i32, Path, description = "Table ID")
     ),
@@ -88,6 +91,7 @@ pub async fn get_table(
 }
 
 #[utoipa::path(
+    tags=["tables"],
     responses((status = 200, body = [Table]))
 )]
 #[get("/settings/{setting_id}/tables")]
@@ -110,6 +114,7 @@ pub async fn get_tables(
 }
 
 #[utoipa::path(
+    tags=["tables"],
     params(
         ("id" = i32, Path, description = "Table ID")
     ),

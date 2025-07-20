@@ -13,6 +13,7 @@ pub struct NewNode {
 }
 
 #[utoipa::path(
+    tags=["nodes"],
     responses((status = 200, body = NodeResponse))
 )]
 #[post("/settings/{setting_id}/node")]
@@ -25,6 +26,7 @@ pub async fn post_node(app_state: web::Data<AppState>, new_label: web::Json<NewN
 }
 
 #[utoipa::path(
+    tags=["nodes"],
     responses((status = 200, body = [Node]))
 )]
 #[get("/settings/{setting_id}/node")]
@@ -34,6 +36,7 @@ pub async fn get_node(app_state: web::Data<AppState>, path: web::Path<i32>) -> i
 }
 
 #[utoipa::path(
+    tags=["nodes"],
     params(
         ("node_id" = i32, Path, description = "ID do nó a ser atualizado"),
         ("label" = String, Query, description = "Novo label do nó")
@@ -58,6 +61,7 @@ pub async fn put_node(
 
 
 #[utoipa::path(
+    tags=["nodes"],
     params(
         ("node_id" = i32, Path, description = "ID do nó a ser deletado")
     ),

@@ -7,6 +7,7 @@ pub struct PostPredicate {
 }
 
 #[utoipa::path(
+    tags=["predicates"],
     responses((status = 200, body = [Predicate])),
 )]
 #[get("/settings/{setting_id}/predicates")]
@@ -17,6 +18,7 @@ pub async fn get_predicates(app_state: web::Data<AppState>, path: web::Path<i32>
 
 
 #[utoipa::path(
+    tags=["predicates"],
     request_body = PostPredicate,
     responses((status = 200, body = Predicate)),
 )]

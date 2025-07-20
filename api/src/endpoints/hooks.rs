@@ -9,6 +9,7 @@ use std::thread;
 // type HmacSha256 = Hmac<Sha256>;
 
 #[utoipa::path(
+    tags=["webhook"],
     request_body = (),
     responses(
         (status = 200, description = "Webhook processed successfully"),
@@ -28,7 +29,7 @@ pub async fn github_webhook(req: HttpRequest, body: web::Bytes) -> impl Responde
         Ok(s) => s,
         Err(_) => return HttpResponse::InternalServerError().body("Secret not configured"),
     };
-    
+
     if !verify_signature(&body, signature, &secret) {
         return HttpResponse::Unauthorized().body("Invalid signature");
     }
@@ -59,7 +60,7 @@ pub async fn github_webhook(req: HttpRequest, body: web::Bytes) -> impl Responde
 fn verify_signature(_payload: &[u8], _signature: &str, _secret: &str) -> bool {
     // TODO: Implement the actual signature verification logic
     // let sig_str = signature.strip_prefix("sha256=").unwrap_or(signature);
-    
+
     // // Convert hex signature to bytes
     // let sig_bytes = match hex::decode(sig_str) {
     //     Ok(bytes) => bytes,
