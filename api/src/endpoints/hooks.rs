@@ -4,7 +4,6 @@ use actix_web::HttpRequest;
 // use sha2::Sha256;
 use std::env;
 use std::process::Command;
-use std::thread;
 
 // type HmacSha256 = Hmac<Sha256>;
 
@@ -38,20 +37,16 @@ pub async fn github_webhook(req: HttpRequest, body: web::Bytes) -> impl Responde
         Err(e) => return HttpResponse::InternalServerError().body(format!("Failed to get current directory: {}", e)),
     };
 
-    let update_script = current_dir.parent().unwrap_or(&current_dir).parent().unwrap_or(&current_dir).join("update.sh");
+    // Construct the path to the update script making it detached from current process with &
+    let update_script = current_dir.parent().unwrap_or(&current_dir).parent().unwrap_or(&current_dir).join("update.sh &");
 
     if !update_script.exists() {
         return HttpResponse::InternalServerError().body("Update script not found");
     }
 
-    // Run the update script in a separate thread
-    thread::spawn(move || {
-        let _output = Command::new(&update_script)
-            .current_dir(current_dir)
-            .output()
-            .expect("Failed to execute update script");
-            // TODO: Handle output and errors from the script
-        });
+    let _child = Command::new(&update_script)
+        .current_dir(current_dir)
+        .spawn();
 
     return HttpResponse::Ok().body("Webhook processed successfully");
 }
