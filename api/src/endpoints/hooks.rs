@@ -38,15 +38,16 @@ pub async fn github_webhook(req: HttpRequest, body: web::Bytes) -> impl Responde
     };
 
     // Construct the path to the update script making it detached from current process with &
-    let update_script = current_dir.parent().unwrap_or(&current_dir).parent().unwrap_or(&current_dir).join("update.sh &");
+    let update_script = current_dir.parent().unwrap_or(&current_dir).parent().unwrap_or(&current_dir).join("update.sh");
 
     if !update_script.exists() {
         return HttpResponse::InternalServerError().body("Update script not found");
     }
 
-    let _child = Command::new(&update_script)
+    Command::new(&update_script)
         .current_dir(current_dir)
-        .spawn();
+        .spawn()
+        .ok();
 
     return HttpResponse::Ok().body("Webhook processed successfully");
 }
