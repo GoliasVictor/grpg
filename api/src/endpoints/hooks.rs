@@ -49,12 +49,12 @@ pub async fn github_webhook(req: HttpRequest, body: web::Bytes) -> impl Responde
         return HttpResponse::InternalServerError().body("Update script not found");
     }
 
-    Command::new(&update_script)
-        .current_dir(current_dir)
-        .spawn()
-        .ok();
+    if let Ok(mut _c) = Command::new(&update_script).current_dir(current_dir).spawn() {
+        return HttpResponse::Ok().body("Webhook processed successfully");
+    } else {
+        return HttpResponse::InternalServerError().body("Failed to spawn update script process");
+    }
 
-    return HttpResponse::Ok().body("Webhook processed successfully");
 }
 
 fn verify_signature(payload: &[u8], signature: &[u8], secret: &[u8]) -> bool {
