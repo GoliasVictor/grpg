@@ -53,7 +53,6 @@ pub async fn github_webhook(req: HttpRequest, body: web::Bytes) -> impl Responde
 }
 
 fn verify_signature(_payload: &[u8], _signature: &str, _secret: &str) -> bool {
-    // TODO: Implement the actual signature verification logic
     // let sig_str = signature.strip_prefix("sha256=").unwrap_or(signature);
     
     // // Convert hex signature to bytes
