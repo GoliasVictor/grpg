@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use crate::db::models::TableDefinition;
-use crate::db::base::{
+use crate::db::reldb::{
     Store,
 };
-use crate::db::base::workspaces::{
+use crate::db::reldb::workspaces::{
     get_workspace,
     save_workspace
 };

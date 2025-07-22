@@ -1,8 +1,8 @@
-use crate::db::base::{
+use crate::db::reldb::{
     Store,
 };
-use crate::db::base::WorkspaceData;
-use crate::db::base::workspaces::{
+use crate::db::reldb::WorkspaceData;
+use crate::db::reldb::workspaces::{
     add_workspace,
     get_workspaces
 };

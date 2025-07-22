@@ -1,10 +1,10 @@
-use crate::db::base::{
+use crate::db::reldb::{
     Store,
     WorkspaceData,
 };
 use std::collections::HashMap;
 use sea_orm::{Set, EntityTrait, QueryFilter, ColumnTrait, ActiveModelTrait};
-use crate::db::base::entities::{
+use crate::db::reldb::entities::{
     workspace,
     prelude::Workspace
 };

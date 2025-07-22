@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 use crate::db::models::TableDefinition;
-use crate::db::base::{
+use crate::db::reldb::{
     Store,
 };
 pub struct WorkspaceManager<'a> {
     pub store: &'a Store,
     pub workspace: i32,
 }
-use crate::db::base::tables::{
+use crate::db::reldb::tables::{
     set_table,
     get_table,
     get_tables,

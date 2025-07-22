@@ -11,7 +11,7 @@ use crate::db::models::{
     TableDefinition,
     UserData
 };
-use crate::db::base::{
+use crate::db::reldb::{
     workspaces::get_workspace,
     users::{
         add_user,

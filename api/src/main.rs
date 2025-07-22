@@ -11,8 +11,8 @@ use kuzu::{ Connection, Database, SystemConfig };
 use std::{
     sync::{Arc}
 };
-use crate::db::graph::GraphManager;
-use crate::db::base::Store;
+use crate::db::graphdb::GraphManager;
+use crate::db::reldb::Store;
 
 pub struct AppState {
     db: Arc<Database>,

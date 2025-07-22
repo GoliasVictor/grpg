@@ -1,8 +1,8 @@
-use crate::db::base::{
+use crate::db::reldb::{
     Store
 };
 use sea_orm::{Set, EntityTrait};
-use crate::db::base::entities::{
+use crate::db::reldb::entities::{
     user,
     prelude::User
 };
