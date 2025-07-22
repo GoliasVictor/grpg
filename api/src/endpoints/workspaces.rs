@@ -59,7 +59,7 @@ pub async fn get_workspace_by_id(app_state: web::Data<AppState>, path: web::Path
     }
 }
 #[derive(Deserialize, Serialize)]
-struct GetworkspacesQuery {
+struct GetWorkspacesQuery {
     user_id: i32
 }
 #[utoipa::path(
@@ -69,7 +69,7 @@ struct GetworkspacesQuery {
     ),
     responses((status = 200, body = [Workspace])))]
 #[get("/workspaces")]
-pub async fn get_workspaces(app_state: web::Data<AppState>, query: web::Query<GetworkspacesQuery>) -> impl Responder {
+pub async fn get_workspaces(app_state: web::Data<AppState>, query: web::Query<GetWorkspacesQuery>) -> impl Responder {
     let user_id = query.user_id;
     if let Some(workspaces) = app_state.store.user_workspaces(user_id).get_workspaces().await {
         HttpResponse::Ok().json(workspaces.into_iter().map(|s| Workspace {

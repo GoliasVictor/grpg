@@ -15,6 +15,13 @@ impl MigrationTrait for Migration {
                     .col(string(Workspace::Name))
                     .col(integer(Workspace::UserId))
                     .col(string(Workspace::TableJson))
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_workspace_user")
+                            .from(Workspace::Table, Workspace::UserId)
+                            .to(User::Table, User::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                    )
                     .to_owned(),
             )
             .await?;
