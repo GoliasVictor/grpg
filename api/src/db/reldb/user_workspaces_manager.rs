@@ -7,12 +7,12 @@ use crate::db::reldb::workspaces::{
     get_workspaces
 };
 
-pub struct UserworkspacesManager<'a> {
+pub struct UserWorkspacesManager<'a> {
     pub store: &'a Store,
     pub user_id: i32,
 }
 
-impl UserworkspacesManager<'_> {
+impl UserWorkspacesManager<'_> {
     pub async fn add_workspace(&self, name: String) -> Result<i32, String> {
         add_workspace(self.store, self.user_id, name).await
     }

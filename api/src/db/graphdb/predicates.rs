@@ -2,13 +2,13 @@ pub use kuzu::{
     Connection,
     Value,
 };
-pub use crate::db::{
+pub use crate::db::graphdb::{
     TryCast
 };
 pub use crate::db::models::{
     Predicate
 };
-use crate::db::ConnectionUtil;
+use crate::db::graphdb::ConnectionUtil;
 
 pub fn predicate_all(conn: &Connection<'_>, workspace: i32,) -> Vec<Predicate> {
     let result = conn.query_with_params(

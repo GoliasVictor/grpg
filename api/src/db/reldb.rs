@@ -19,7 +19,7 @@ use crate::db::reldb::{
         get_user
     },
     workspace_manager::WorkspaceManager,
-    user_workspaces_manager::UserworkspacesManager
+    user_workspaces_manager::UserWorkspacesManager
 };
 use futures::executor::block_on;
 use sea_orm::Database;
@@ -56,8 +56,8 @@ impl Store {
     pub fn reldb_conn(&self) -> &DatabaseConnection {
         &self.1
     }
-    pub fn user_workspaces(&self, user_id: i32) -> UserworkspacesManager {
-        UserworkspacesManager {
+    pub fn user_workspaces(&self, user_id: i32) -> UserWorkspacesManager {
+        UserWorkspacesManager {
             store: self,
             user_id
         }

@@ -11,7 +11,7 @@ pub use kuzu::{
     Value,
     LogicalType
 };
-pub use crate::db::{
+pub use crate::db::graphdb::{
     TryCast
 };
 

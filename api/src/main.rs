@@ -7,24 +7,21 @@ use utoipa::OpenApi;
 use utoipa_actix_web::{service_config::ServiceConfig, AppExt};
 use utoipa_rapidoc::RapiDoc;
 use utoipa_scalar::{Scalar, Servable as ScalarServable};
-use kuzu::{ Connection, Database, SystemConfig };
 use std::{
     sync::{Arc}
 };
 use crate::db::graphdb::GraphManager;
 use crate::db::reldb::Store;
+use crate::db::graphdb::GraphDatabase;
 
 pub struct AppState {
-    db: Arc<Database>,
+    db: Arc<GraphDatabase>,
     store: Arc<Store>,
 }
 impl AppState {
-    fn establish_connection(&self) -> Connection {
-        Connection::new(&self.db).unwrap()
-    }
     pub fn graph(&self, workspace_id: i32) -> GraphManager {
         GraphManager {
-            conn: self.establish_connection(),
+            conn: self.db.connection(),
             workspace: workspace_id
         }
     }
@@ -37,13 +34,11 @@ async fn main() -> Result<(), impl Error> {
     }
     #[derive(OpenApi)]
     struct ApiDoc;
-    let db = Database::new("./demo_db", SystemConfig::default()).unwrap();
-    let conn = Connection::new(&db).unwrap();
-    db::create_db(&conn);
-    drop(conn);
+    let graph_db = db::graphdb::GraphDatabase::new("./demo_db");
+    graph_db.startup();
 
     let app_data = Data::new(AppState {
-        db: Arc::new(db),
+        db: Arc::new(graph_db),
         store: Arc::new(Store::new()),
     });
 

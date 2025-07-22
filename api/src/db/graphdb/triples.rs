@@ -1,10 +1,10 @@
-use crate::db::TryCast;
+use crate::db::graphdb::TryCast;
 use crate::db::models::Triple;
 use kuzu::{
     Value,
     Connection
 };
-use crate::db::ConnectionUtil;
+use crate::db::graphdb::ConnectionUtil;
 
 pub fn triple_create(
     conn: &Connection<'_>,
