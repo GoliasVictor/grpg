@@ -9,6 +9,7 @@ use std::os::unix::process::CommandExt;
 // type HmacSha256 = Hmac<Sha256>;
 
 #[utoipa::path(
+    tags=["webhook"],
     request_body = (),
     responses(
         (status = 200, description = "Webhook processed successfully"),

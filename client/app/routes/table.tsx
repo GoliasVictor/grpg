@@ -18,13 +18,7 @@ type Filter = {
   direction: "in" | "out" | "any";
   anotherNode: number | null;
 }
-
-export async function clientLoader({ }: Route.LoaderArgs) {
-  return {
-    predicates: (await client.GET("/predicates"))?.data || []
-  }
-}
-
+ 
 export default function Home(this: any) {
   let params = useParams();
   let t = parseInt(params.id || "");

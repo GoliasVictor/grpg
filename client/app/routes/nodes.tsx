@@ -7,7 +7,7 @@ import {
 } from "~/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { NavLink } from "react-router";
-import { useNodesQuery } from "~/hooks/queries";
+import { useNodesQuery } from "~/hooks/queries/nodes-queries";
 
 function NTable({ data}: { data: any[]}) {
 

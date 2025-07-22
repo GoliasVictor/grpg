@@ -11,14 +11,22 @@ use kuzu::{ Connection, Database, SystemConfig };
 use std::{
     sync::{Arc}
 };
+use crate::db::graph::GraphManager;
+use crate::db::base::Store;
 
 pub struct AppState {
     db: Arc<Database>,
-    store: Arc<db::Store>,
+    store: Arc<Store>,
 }
 impl AppState {
     fn establish_connection(&self) -> Connection {
         Connection::new(&self.db).unwrap()
+    }
+    pub fn graph(&self, setting_id: i32) -> GraphManager {
+        GraphManager {
+            conn: self.establish_connection(),
+            setting: setting_id
+        }
     }
 }
 #[actix_web::main]
@@ -36,7 +44,7 @@ async fn main() -> Result<(), impl Error> {
 
     let app_data = Data::new(AppState {
         db: Arc::new(db),
-        store: Arc::new(db::Store::new()),
+        store: Arc::new(Store::new()),
     });
 
     HttpServer::new(move || {
@@ -53,6 +61,12 @@ async fn main() -> Result<(), impl Error> {
             .map(|app| app.wrap(Logger::default()))
             .configure(|config: &mut ServiceConfig| {
                 config
+                    .service(endpoints::users::post_user)
+                    .service(endpoints::users::get_users)
+                    .service(endpoints::users::get_user_by_id)
+                    .service(endpoints::settings::post_setting)
+                    .service(endpoints::settings::get_settings)
+                    .service(endpoints::settings::get_setting_by_id)
                     .service(endpoints::predicates::get_predicates)
                     .service(endpoints::predicates::post_predicate)
                     .service(endpoints::nodes::post_node)

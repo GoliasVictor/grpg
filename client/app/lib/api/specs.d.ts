@@ -4,7 +4,55 @@
  */
 
 export interface paths {
-    "/node": {
+    "/hook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["github_webhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_settings"];
+        put?: never;
+        post: operations["post_setting"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/{setting_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_setting_by_id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/{setting_id}/node": {
         parameters: {
             query?: never;
             header?: never;
@@ -20,7 +68,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/node/{node_id}": {
+    "/settings/{setting_id}/node/{node_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -36,7 +84,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/predicate": {
+    "/settings/{setting_id}/predicate": {
         parameters: {
             query?: never;
             header?: never;
@@ -52,7 +100,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/predicates": {
+    "/settings/{setting_id}/predicates": {
         parameters: {
             query?: never;
             header?: never;
@@ -68,7 +116,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/table": {
+    "/settings/{setting_id}/table": {
         parameters: {
             query?: never;
             header?: never;
@@ -84,7 +132,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/table/{id}": {
+    "/settings/{setting_id}/table/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -100,7 +148,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/tables": {
+    "/settings/{setting_id}/tables": {
         parameters: {
             query?: never;
             header?: never;
@@ -116,7 +164,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/tables/{id}": {
+    "/settings/{setting_id}/tables/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -132,7 +180,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/triple": {
+    "/settings/{setting_id}/triple": {
         parameters: {
             query?: never;
             header?: never;
@@ -148,7 +196,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/triples": {
+    "/settings/{setting_id}/triples": {
         parameters: {
             query?: never;
             header?: never;
@@ -156,6 +204,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["get_triples"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_users"];
+        put?: never;
+        post: operations["post_user"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_user_by_id"];
         put?: never;
         post?: never;
         delete?: never;
@@ -207,6 +287,14 @@ export interface components {
         PostPredicate: {
             label: string;
         };
+        PostSetting: {
+            name: string;
+            /** Format: int32 */
+            user_id: number;
+        };
+        PostUser: {
+            username: string;
+        };
         Predicate: {
             /** Format: int32 */
             id: number;
@@ -216,6 +304,13 @@ export interface components {
             columns: components["schemas"]["CellResponse"][];
             /** Format: int32 */
             node_id: number;
+        };
+        Setting: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /** Format: int32 */
+            user_id: number;
         };
         Table: {
             def: components["schemas"]["TableDefinition"];
@@ -236,6 +331,11 @@ export interface components {
             /** Format: int32 */
             subject_id: number;
         };
+        UserData: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -245,11 +345,129 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get_node: {
+    github_webhook: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": unknown;
+            };
+        };
+        responses: {
+            /** @description Webhook processed successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_settings: {
+        parameters: {
+            query: {
+                /** @description User ID */
+                user_id: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Setting"][];
+                };
+            };
+        };
+    };
+    post_setting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostSetting"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Setting"];
+                };
+            };
+        };
+    };
+    get_setting_by_id: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                setting_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Setting"][];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_node: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -268,7 +486,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -297,6 +517,7 @@ export interface operations {
             path: {
                 /** @description ID do nó a ser atualizado */
                 node_id: number;
+                setting_id: number;
             };
             cookie?: never;
         };
@@ -319,6 +540,7 @@ export interface operations {
             path: {
                 /** @description ID do nó a ser deletado */
                 node_id: number;
+                setting_id: number;
             };
             cookie?: never;
         };
@@ -338,7 +560,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -361,7 +585,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -380,7 +606,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -406,6 +634,7 @@ export interface operations {
             path: {
                 /** @description Table ID */
                 id: number;
+                setting_id: number;
             };
             cookie?: never;
         };
@@ -428,6 +657,7 @@ export interface operations {
             path: {
                 /** @description Table ID */
                 id: number;
+                setting_id: number;
             };
             cookie?: never;
         };
@@ -445,13 +675,23 @@ export interface operations {
                     "application/json": components["schemas"]["RowResponse"][];
                 };
             };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
         };
     };
     get_tables: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -473,6 +713,7 @@ export interface operations {
             path: {
                 /** @description Table ID */
                 id: number;
+                setting_id: number;
             };
             cookie?: never;
         };
@@ -500,7 +741,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -521,7 +764,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -542,7 +787,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                setting_id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -554,6 +801,76 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Triple"][];
                 };
+            };
+        };
+    };
+    get_users: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserData"][];
+                };
+            };
+        };
+    };
+    post_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostUser"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserData"];
+                };
+            };
+        };
+    };
+    get_user_by_id: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserData"][];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

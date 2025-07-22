@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import type {
   Cell,
@@ -53,7 +51,8 @@ import {
 } from "~/components/ui/dialog"
 import { Label } from "~/components/ui/label"
 
-import { useNodesCreateMutation, useNodesDeleteMutation, useNodesQuery, usePredicateQuery, useTripleCreateMutation, useTripleDeleteMutation } from "~/hooks/queries"
+import { usePredicateQuery, useTripleCreateMutation, useTripleDeleteMutation } from "~/hooks/queries"
+import { useNodesCreateMutation, useNodesDeleteMutation, useNodesQuery } from "~/hooks/queries/nodes-queries"
 import DataTableColumnHeader  from "./data-table-column-header"
 import NodeBadge from "./node-badge"
 import NodeBadgeAdd from "./node-badge-add"

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { client, useNodesUpdateMutation, useOneNodeQuery } from "~/hooks/queries";
+import { useNodesUpdateMutation, useOneNodeQuery } from "~/hooks/queries/nodes-queries";
 
 export default function NodeBadgeTriple({
   nodeId,
