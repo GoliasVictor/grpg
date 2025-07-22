@@ -53,17 +53,13 @@ pub async fn github_webhook(req: HttpRequest, body: web::Bytes) -> impl Responde
     {
         use std::os::unix::process::CommandExt;
         
-        let c = Command::new(&update_script)
+        let _c = Command::new(&update_script)
             .current_dir(current_dir)
             .process_group(0)
             .spawn()
             .ok();
-        if c.is_some() {
-            return HttpResponse::Ok().body("Webhook processed successfully");
-        } else {
-            return HttpResponse::InternalServerError().body("Failed to spawn update script process");
-        }
-        
+        HttpResponse::Ok().body("Webhook processed successfully");
+        std::process::exit(0);
     }
     
     #[cfg(windows)]
