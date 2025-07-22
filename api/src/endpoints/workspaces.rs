@@ -27,6 +27,7 @@ pub async fn post_workspace(
     let workspace = body.into_inner();
      app_state.store.user_workspaces(workspace.user_id)
         .add_workspace(workspace.name.clone())
+        .await
         .map(|id| HttpResponse::Ok().json(Workspace {
             id,
             name: workspace.name,
@@ -47,7 +48,7 @@ pub async fn post_workspace(
 #[get("/workspaces/{workspace_id}")]
 pub async fn get_workspace_by_id(app_state: web::Data<AppState>, path: web::Path<i32>) -> impl Responder {
     let workspace_id = path.into_inner();
-    if let Some(workspace) = app_state.store.get_workspace(workspace_id) {
+    if let Some(workspace) = app_state.store.get_workspace(workspace_id).await {
         HttpResponse::Ok().json(Workspace {
             id: workspace_id,
             name: workspace.name,
@@ -70,7 +71,7 @@ struct GetworkspacesQuery {
 #[get("/workspaces")]
 pub async fn get_workspaces(app_state: web::Data<AppState>, query: web::Query<GetworkspacesQuery>) -> impl Responder {
     let user_id = query.user_id;
-    if let Some(workspaces) = app_state.store.user_workspaces(user_id).get_workspaces() {
+    if let Some(workspaces) = app_state.store.user_workspaces(user_id).get_workspaces().await {
         HttpResponse::Ok().json(workspaces.into_iter().map(|s| Workspace {
             id: s.0,
             name: s.1.name,

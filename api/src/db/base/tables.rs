@@ -4,38 +4,38 @@ use crate::db::base::{
     Store,
 };
 use crate::db::base::workspaces::{
-    read_workspace,
+    get_workspace,
     save_workspace
 };
 
-pub fn set_table(store: &Store, workspace_id: i32, id: i32, table: TableDefinition) -> Result<(), String> {
+pub async fn set_table(store: &Store, workspace_id: i32, id: i32, table: TableDefinition) -> Result<(), String> {
     let _lock = store.0.lock().unwrap();
-    let mut store_data = read_workspace(store, workspace_id).ok_or("Workspace not found")?;
+    let mut store_data = get_workspace(store, workspace_id).await.ok_or("Workspace not found")?;
     store_data.tables.insert(id, table);
-    save_workspace(store, workspace_id, store_data);
+    save_workspace(store, workspace_id, store_data).await;
     Ok(())
 }
-pub fn get_table(store: &Store, workspace_id: i32, id: i32) -> Option<TableDefinition> {
-    let mut store = read_workspace(store, workspace_id)?;
+pub async fn get_table(store: &Store, workspace_id: i32, id: i32) -> Option<TableDefinition> {
+    let mut store = get_workspace(store, workspace_id).await?;
     store.tables.remove(&id)
 }
 
-pub fn get_tables(store: &Store, workspace_id: i32) -> Option<HashMap<i32, TableDefinition>> {
-    read_workspace(store, workspace_id).map(|x| x.tables)
+pub async fn get_tables(store: &Store, workspace_id: i32) -> Option<HashMap<i32, TableDefinition>> {
+    get_workspace(store, workspace_id).await.map(|x| x.tables)
 }
 
-pub fn add_table(store: &Store, workspace_id: i32, table: TableDefinition) -> Option<i32> {
+pub async fn add_table(store: &Store, workspace_id: i32, table: TableDefinition) -> Option<i32> {
     let _lock = store.0.lock().unwrap();
-    let mut workspace = read_workspace(store, workspace_id)?;
+    let mut workspace = get_workspace(store, workspace_id).await?;
     let next_id = workspace.tables.keys().max().map_or(1, |max_id| max_id + 1);
     workspace.tables.insert(next_id, table);
-    save_workspace(store, workspace_id, workspace);
+    save_workspace(store, workspace_id, workspace).await;
     Some(next_id)
 }
-pub fn remove_table(store: &Store, workspace_id: i32, id: i32) -> Option<TableDefinition> {
+pub async fn remove_table(store: &Store, workspace_id: i32, id: i32) -> Option<TableDefinition> {
     let _lock = store.0.lock().unwrap();
-    let mut workspace = read_workspace(store, workspace_id)?;
+    let mut workspace = get_workspace(store, workspace_id).await?;
     let removed = workspace.tables.remove(&id);
-    save_workspace(store, workspace_id, workspace);
+    save_workspace(store, workspace_id, workspace).await;
     removed
 }

@@ -15,19 +15,19 @@ use crate::db::base::tables::{
     remove_table
 };
 impl WorkspaceManager<'_> {
-    pub fn set_table(&self, id: i32, table: TableDefinition) -> Result<(), String> {
-        set_table(self.store, self.workspace, id, table)
+    pub async fn set_table(&self, id: i32, table: TableDefinition) -> Result<(), String> {
+        set_table(self.store, self.workspace, id, table).await
     }
-    pub fn get_table(&self, id: i32) -> Option<TableDefinition> {
-        get_table(self.store, self.workspace, id)
+    pub async fn get_table(&self, id: i32) -> Option<TableDefinition> {
+        get_table(self.store, self.workspace, id).await
     }
-    pub fn get_tables(&self) -> Option<HashMap<i32, TableDefinition>> {
-        get_tables(self.store, self.workspace)
+    pub async fn get_tables(&self) -> Option<HashMap<i32, TableDefinition>> {
+        get_tables(self.store, self.workspace).await
     }
-    pub fn add_table(&self, table: TableDefinition) -> Option<i32> {
-        add_table(self.store, self.workspace, table)
+    pub async fn add_table(&self, table: TableDefinition) -> Option<i32> {
+        add_table(self.store, self.workspace, table).await
     }
-    pub fn remove_table(&self, id: i32) -> Option<TableDefinition> {
-        remove_table(self.store, self.workspace, id)
+    pub async fn remove_table(&self, id: i32) -> Option<TableDefinition> {
+        remove_table(self.store, self.workspace, id).await
     }
 }

@@ -13,10 +13,10 @@ pub struct UserworkspacesManager<'a> {
 }
 
 impl UserworkspacesManager<'_> {
-    pub fn add_workspace(&self, name: String) -> Result<i32, String> {
-        add_workspace(self.store, self.user_id, name)
+    pub async fn add_workspace(&self, name: String) -> Result<i32, String> {
+        add_workspace(self.store, self.user_id, name).await
     }
-    pub fn get_workspaces(&self) -> Option<Vec<(i32, WorkspaceData)>> {
-        get_workspaces(self.store, self.user_id)
+    pub async fn get_workspaces(&self) -> Option<Vec<(i32, WorkspaceData)>> {
+        get_workspaces(self.store, self.user_id).await
     }
 }

@@ -16,7 +16,7 @@ pub async fn post_user(
     body: web::Json<PostUser>,
 ) -> impl Responder {
     let user = body.into_inner();
-    let id = app_state.store.add_user(user.username.clone());
+    let id = app_state.store.add_user(user.username.clone()).await;
     HttpResponse::Ok().json(UserData { id, name: user.username })
 }
 
@@ -30,7 +30,7 @@ pub async fn post_user(
 #[get("/users/{user_id}")]
 pub async fn get_user_by_id(app_state: web::Data<AppState>, path: web::Path<i32>) -> impl Responder {
     let user_id = path.into_inner();
-    if let Some(user) = app_state.store.get_user(user_id) {
+    if let Some(user) = app_state.store.get_user(user_id).await {
         HttpResponse::Ok().json(user)
     } else {
         HttpResponse::NotFound().body("User not found")
@@ -43,6 +43,6 @@ pub async fn get_user_by_id(app_state: web::Data<AppState>, path: web::Path<i32>
 )]
 #[get("/users")]
 pub async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
-    let users = app_state.store.get_users();
+    let users = app_state.store.get_users().await;
     HttpResponse::Ok().json(users)
 }

@@ -47,7 +47,7 @@ impl Store {
             Database::connect(DATABASE_URL).await.unwrap()
         }))
     }
-    pub fn conn(&self, workspace: i32) -> WorkspaceManager {
+    pub fn workspace_manager(&self, workspace: i32) -> WorkspaceManager {
         WorkspaceManager {
             store: self,
             workspace
@@ -63,19 +63,19 @@ impl Store {
         }
     }
 
-    pub fn get_workspace(&self, workspace_id: i32) -> Option<WorkspaceData> {
-        get_workspace(self, workspace_id)
+    pub async fn get_workspace(&self, workspace_id: i32) -> Option<WorkspaceData> {
+        get_workspace(self, workspace_id).await
     }
 
-    pub fn add_user(&self, name: String) -> i32 {
-        block_on(add_user(self, name))
+    pub async fn add_user(&self, name: String) -> i32 {
+        add_user(self, name).await
     }
-    pub fn get_user(&self, id: i32) -> Option<UserData> {
-        block_on(get_user(self, id))
+    pub async fn get_user(&self, id: i32) -> Option<UserData> {
+        get_user(self, id).await
     }
 
-    pub fn get_users(&self) -> Vec<UserData> {
-        block_on(get_users(self)).unwrap_or_default()
+    pub async fn get_users(&self) -> Vec<UserData> {
+        get_users(self).await.unwrap_or_default()
     }
 }
 
