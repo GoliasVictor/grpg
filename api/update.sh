@@ -7,6 +7,9 @@ export PATH=$PATH:$RUST_DIRECTORY
 
 {
     service grpg stop
+    while service grpg status > /dev/null 2>&1; do
+        sleep 1
+    done
     git pull
     cargo build --release
     sudo service grpg start
