@@ -4,6 +4,7 @@ use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use std::env;
 use std::process::Command;
+use std::os::unix::process::CommandExt;
 
 // type HmacSha256 = Hmac<Sha256>;
 
@@ -48,35 +49,14 @@ pub async fn github_webhook(req: HttpRequest, body: web::Bytes) -> impl Responde
     if !update_script.exists() {
         return HttpResponse::InternalServerError().body("Update script not found");
     }
-
-    #[cfg(unix)]
-    {
-        use std::os::unix::process::CommandExt;
-        
-        let _c = Command::new(&update_script)
-            .current_dir(current_dir)
-            .process_group(0)
-            .spawn()
-            .ok();
-        HttpResponse::Ok().body("Webhook processed successfully");
-        std::process::exit(0);
-    }
     
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        let c = Command::new(&update_script)
-            .creation_flags(DETACHED_PROCESS)
-            .current_dir(current_dir)
-            .spawn()
-            .ok();
-        
-        if c.is_some() {
-            return HttpResponse::Ok().body("Webhook processed successfully");
-        } else {
-            return HttpResponse::InternalServerError().body("Failed to spawn update script process");
-        }
-    }
+    let _c = Command::new(&update_script)
+        .current_dir(current_dir)
+        .process_group(0)
+        .spawn()
+        .ok();
+    
+    return HttpResponse::Ok().body("Webhook processed successfully");
 }
 
 fn verify_signature(payload: &[u8], signature: &[u8], secret: &[u8]) -> bool {

@@ -5,12 +5,9 @@ export KUZU_INCLUDE_DIR=<REPLACE_WITH_INCLUDE_DIR>
 export KUZU_LIBRARY_DIR=<REPLACE_WITH_LIBRARY_DIR>
 export PATH=$PATH:$RUST_DIRECTORY
 
-{
+nohup sh -c '
     service grpg stop
-    while service grpg status > /dev/null 2>&1; do
-        sleep 1
-    done
     git pull
     cargo build --release
     sudo service grpg start
-} > update_log-latest.txt 2>&1
+' > update_log-latest.txt 2>&1 &
