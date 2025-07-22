@@ -10,10 +10,10 @@ pub struct PostPredicate {
     tags=["predicates"],
     responses((status = 200, body = [Predicate])),
 )]
-#[get("/settings/{setting_id}/predicates")]
+#[get("/workspaces/{workspace_id}/predicates")]
 pub async fn get_predicates(app_state: web::Data<AppState>, path: web::Path<i32>) -> impl Responder {
-    let setting_id = path.into_inner();
-    HttpResponse::Ok().json(app_state.graph(setting_id).predicate_all())
+    let workspace_id = path.into_inner();
+    HttpResponse::Ok().json(app_state.graph(workspace_id).predicate_all())
 }
 
 
@@ -22,12 +22,12 @@ pub async fn get_predicates(app_state: web::Data<AppState>, path: web::Path<i32>
     request_body = PostPredicate,
     responses((status = 200, body = Predicate)),
 )]
-#[post("/settings/{setting_id}/predicate")]
+#[post("/workspaces/{workspace_id}/predicate")]
 pub async fn post_predicate(
     app_state: web::Data<AppState>,
     predicate: web::Json<PostPredicate>,
     path: web::Path<i32>,
 ) -> impl Responder {
-    let setting_id = path.into_inner();
-    HttpResponse::Ok().json(app_state.graph(setting_id).predicate_create(&predicate.label))
+    let workspace_id = path.into_inner();
+    HttpResponse::Ok().json(app_state.graph(workspace_id).predicate_create(&predicate.label))
 }

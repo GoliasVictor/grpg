@@ -5,26 +5,26 @@ import type { components, paths } from "~/lib/api/specs";
 export const client = createClient<paths>({ baseUrl: import.meta.env.VITE_API_URL });
 
 class NodesService {
-  async getNodes(setting_id : number) {
-    return (await client.GET("/settings/{setting_id}/node",
-      {params:{path: {setting_id}}}
+  async getNodes(workspace_id : number) {
+    return (await client.GET("/workspaces/{workspace_id}/node",
+      {params:{path: {workspace_id}}}
     )).data
   }
-  async createNode(setting_id: number, data: components["schemas"]["NewNode"]) {
-    await client.POST("/settings/{setting_id}/node", {
+  async createNode(workspace_id: number, data: components["schemas"]["NewNode"]) {
+    await client.POST("/workspaces/{workspace_id}/node", {
       params: {
         path: {
-          setting_id
+          workspace_id
         }
       },
       body: data
     })
   }
-  async updateNode(setting_id: number, def: components["schemas"]["Node"]) {
-    await client.PUT("/settings/{setting_id}/node/{node_id}", {
+  async updateNode(workspace_id: number, def: components["schemas"]["Node"]) {
+    await client.PUT("/workspaces/{workspace_id}/node/{node_id}", {
       params: {
         path: {
-          setting_id: setting_id,
+          workspace_id: workspace_id,
           node_id: def.node_id
         },
         query: { label: def.label }
@@ -32,11 +32,11 @@ class NodesService {
     })
   }
 
-  async deleteNode(setting_id: number, nodeId: number) {
-    await client.DELETE("/settings/{setting_id}/node/{node_id}", {
+  async deleteNode(workspace_id: number, nodeId: number) {
+    await client.DELETE("/workspaces/{workspace_id}/node/{node_id}", {
       params: {
         path: {
-          setting_id: setting_id,
+          workspace_id: workspace_id,
           node_id: nodeId
         }
       }

@@ -7,25 +7,22 @@ use utoipa::OpenApi;
 use utoipa_actix_web::{service_config::ServiceConfig, AppExt};
 use utoipa_rapidoc::RapiDoc;
 use utoipa_scalar::{Scalar, Servable as ScalarServable};
-use kuzu::{ Connection, Database, SystemConfig };
 use std::{
     sync::{Arc}
 };
-use crate::db::graph::GraphManager;
-use crate::db::base::Store;
+use crate::db::graphdb::GraphManager;
+use crate::db::reldb::Store;
+use crate::db::graphdb::GraphDatabase;
 
 pub struct AppState {
-    db: Arc<Database>,
+    db: Arc<GraphDatabase>,
     store: Arc<Store>,
 }
 impl AppState {
-    fn establish_connection(&self) -> Connection {
-        Connection::new(&self.db).unwrap()
-    }
-    pub fn graph(&self, setting_id: i32) -> GraphManager {
+    pub fn graph(&self, workspace_id: i32) -> GraphManager {
         GraphManager {
-            conn: self.establish_connection(),
-            setting: setting_id
+            conn: self.db.connection(),
+            workspace: workspace_id
         }
     }
 }
@@ -37,13 +34,11 @@ async fn main() -> Result<(), impl Error> {
     }
     #[derive(OpenApi)]
     struct ApiDoc;
-    let db = Database::new("./demo_db", SystemConfig::default()).unwrap();
-    let conn = Connection::new(&db).unwrap();
-    db::create_db(&conn);
-    drop(conn);
+    let graph_db = db::graphdb::GraphDatabase::new("./demo_db");
+    graph_db.startup();
 
     let app_data = Data::new(AppState {
-        db: Arc::new(db),
+        db: Arc::new(graph_db),
         store: Arc::new(Store::new()),
     });
 
@@ -64,9 +59,9 @@ async fn main() -> Result<(), impl Error> {
                     .service(endpoints::users::post_user)
                     .service(endpoints::users::get_users)
                     .service(endpoints::users::get_user_by_id)
-                    .service(endpoints::settings::post_setting)
-                    .service(endpoints::settings::get_settings)
-                    .service(endpoints::settings::get_setting_by_id)
+                    .service(endpoints::workspaces::post_workspace)
+                    .service(endpoints::workspaces::get_workspaces)
+                    .service(endpoints::workspaces::get_workspace_by_id)
                     .service(endpoints::predicates::get_predicates)
                     .service(endpoints::predicates::post_predicate)
                     .service(endpoints::nodes::post_node)

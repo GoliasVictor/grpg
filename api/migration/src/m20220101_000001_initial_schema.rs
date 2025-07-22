@@ -1,0 +1,61 @@
+use sea_orm_migration::{prelude::*, schema::*};
+
+#[derive(DeriveMigrationName)]
+pub struct Migration;
+
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .create_table(
+                Table::create()
+                    .table(Workspace::Table)
+                    .if_not_exists()
+                    .col(pk_auto(Workspace::Id))
+                    .col(string(Workspace::Name))
+                    .col(integer(Workspace::UserId))
+                    .col(string(Workspace::TableJson))
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_workspace_user")
+                            .from(Workspace::Table, Workspace::UserId)
+                            .to(User::Table, User::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                    )
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(User::Table)
+                    .if_not_exists()
+                    .col(pk_auto(User::Id))
+                    .col(string(User::Name))
+                    .to_owned(),
+            )
+            .await
+    }
+
+    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_table(Table::drop().table(Workspace::Table).to_owned())
+            .await
+    }
+}
+
+#[derive(DeriveIden)]
+enum Workspace {
+    Table,
+    Id,
+    Name,
+    UserId,
+    TableJson
+}
+
+#[derive(DeriveIden)]
+enum User {
+    Table,
+    Id,
+    Name
+}

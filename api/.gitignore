@@ -209,4 +209,4 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 demo_db
-graph.yaml
+db.sqlite

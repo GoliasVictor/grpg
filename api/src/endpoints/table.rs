@@ -22,16 +22,16 @@ pub struct TableRow {
         (status = 404, body = String)
     )
 )]
-#[put("/settings/{setting_id}/table/{id}")]
+#[put("/workspaces/{workspace_id}/table/{id}")]
 pub async fn put_table(
     app_state: web::Data<AppState>,
     params: web::Json<TableDefinition>,
     path: web::Path<(i32, i32)>
 ) -> impl Responder {
-    let (setting_id, id) = path.into_inner();
+    let (workspace_id, id) = path.into_inner();
     let table = params.into_inner();
-    if let Ok(_) = app_state.store.conn(setting_id).set_table(id, table.clone()) {
-        HttpResponse::Ok().json(app_state.graph(setting_id).table_rows(table).await)
+    if let Ok(_) = app_state.store.workspace_manager(workspace_id).set_table(id, table.clone()).await {
+        HttpResponse::Ok().json(app_state.graph(workspace_id).table_rows(table).await)
     } else {
         HttpResponse::NotFound().body("Table not found")
     }
@@ -49,18 +49,18 @@ pub struct Table {
     tags=["tables"],
     responses((status = 200, body = [RowResponse]))
 )]
-#[post("/settings/{setting_id}/table")]
+#[post("/workspaces/{workspace_id}/table")]
 pub async fn post_table(
     app_state: web::Data<AppState>,
     params: web::Json<TableDefinition>,
     path: web::Path<i32>
 ) -> impl Responder {
-    let setting_id = path.into_inner();
+    let workspace_id = path.into_inner();
     let table = params.into_inner();
-    if let None = app_state.store.conn(setting_id).add_table(table.clone()) {
+    if let None = app_state.store.workspace_manager(workspace_id).add_table(table.clone()).await {
         HttpResponse::InternalServerError().body("Failed to create table")
     } else {
-        HttpResponse::Ok().json(app_state.graph(setting_id).table_rows(table).await)
+        HttpResponse::Ok().json(app_state.graph(workspace_id).table_rows(table).await)
     }
 
 }
@@ -72,14 +72,14 @@ pub async fn post_table(
     ),
     responses((status = 200, body = Table))
 )]
-#[get("/settings/{setting_id}/table/{id}")]
+#[get("/workspaces/{workspace_id}/table/{id}")]
 pub async fn get_table(
     app_state: web::Data<AppState>,
     path: web::Path<(i32, i32)>,
 ) -> impl Responder {
-    let (setting_id, id) = path.into_inner();
-    if let Some(table_def) = app_state.store.conn(setting_id).get_table(id) {
-        let rows = app_state.graph(setting_id).table_rows(table_def.clone()).await;
+    let (workspace_id, id) = path.into_inner();
+    if let Some(table_def) = app_state.store.workspace_manager(workspace_id).get_table(id).await {
+        let rows = app_state.graph(workspace_id).table_rows(table_def.clone()).await;
         HttpResponse::Ok().json( Table {
             id: id,
             def: table_def,
@@ -94,16 +94,16 @@ pub async fn get_table(
     tags=["tables"],
     responses((status = 200, body = [Table]))
 )]
-#[get("/settings/{setting_id}/tables")]
+#[get("/workspaces/{workspace_id}/tables")]
 pub async fn get_tables(
     app_state: web::Data<AppState>,
     path: web::Path<i32>,
 ) -> impl Responder {
-    let setting_id = path.into_inner();
-    let tables = app_state.store.conn(setting_id).get_tables();
+    let workspace_id = path.into_inner();
+    let tables = app_state.store.workspace_manager(workspace_id).get_tables().await;
     let mut result = Vec::new();
     for (id, def) in tables.unwrap() {
-        let rows = app_state.graph(setting_id).table_rows(def.clone()).await;
+        let rows = app_state.graph(workspace_id).table_rows(def.clone()).await;
         result.push(Table {
             id,
             def: def.clone(),
@@ -120,13 +120,13 @@ pub async fn get_tables(
     ),
     responses((status = 200, body = String), (status = 404, body = String))
 )]
-#[delete("/settings/{setting_id}/tables/{id}")]
+#[delete("/workspaces/{workspace_id}/tables/{id}")]
 pub async fn delete_table(
     app_state: web::Data<AppState>,
     path: web::Path<(i32, i32)>,
 ) -> impl Responder {
-    let (setting_id, id) = path.into_inner();
-    if app_state.store.conn(setting_id).remove_table(id).is_some() {
+    let (workspace_id, id) = path.into_inner();
+    if app_state.store.workspace_manager(workspace_id).remove_table(id).await.is_some() {
         HttpResponse::Ok().body(format!("Table {} deleted", id))
     } else {
         HttpResponse::NotFound().body("Table not found")
