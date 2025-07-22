@@ -5,5 +5,5 @@ services:
     ports:
       - "8080:8000"
     volumes:
-      - ./demo_db/:/database
+      - ./api/demo_db/:/database
     restart: unless-stopped
