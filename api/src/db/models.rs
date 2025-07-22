@@ -18,7 +18,12 @@ pub struct Predicate {
     pub id: i32,
     pub label: String,
 }
-
+#[derive(Deserialize, Serialize, ToSchema)]
+pub struct Triple {
+    pub subject_id: i32,
+    pub predicate_id: i32,
+    pub object_id: i32,
+}
 #[derive(Deserialize, Serialize, ToSchema, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum GraphDirection {

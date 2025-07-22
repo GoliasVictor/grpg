@@ -1,5 +1,5 @@
 use crate::db::TryCast;
-use crate::endpoints::triples::Triple;
+use crate::db::models::Triple;
 use kuzu::{
     Value,
     Connection

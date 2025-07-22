@@ -1,11 +1,5 @@
 use super::prelude::*;
-
-#[derive(Deserialize, Serialize, ToSchema)]
-pub struct Triple {
-    pub subject_id: i32,
-    pub predicate_id: i32,
-    pub object_id: i32,
-}
+use crate::db::models::Triple;
 
 #[utoipa::path(
     tags=["triples"],

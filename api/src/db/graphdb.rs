@@ -1,7 +1,7 @@
 mod triples;
 mod nodes;
 mod predicates;
-use crate::endpoints::triples::Triple;
+use crate::db::models::Triple;
 use crate::db::models::{
     Node,
     Predicate,
