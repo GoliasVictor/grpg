@@ -14,6 +14,17 @@ impl MigrationTrait for Migration {
                     .col(pk_auto(Workspace::Id))
                     .col(string(Workspace::Name))
                     .col(integer(Workspace::UserId))
+                    .col(string(Workspace::TableJson))
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(User::Table)
+                    .if_not_exists()
+                    .col(pk_auto(User::Id))
+                    .col(string(User::Name))
                     .to_owned(),
             )
             .await
@@ -31,5 +42,13 @@ enum Workspace {
     Table,
     Id,
     Name,
-    UserId
+    UserId,
+    TableJson
+}
+
+#[derive(DeriveIden)]
+enum User {
+    Table,
+    Id,
+    Name
 }

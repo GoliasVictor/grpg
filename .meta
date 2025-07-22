@@ -1,0 +1,12 @@
+scripts:
+  generate-entity:
+    directory: ./api
+    script: | 
+      DATABASE_URL=sqlite:./db.sqlite?mode=rwc sea-orm-cli generate entity \
+        -u $DATABASE_URL \
+        -o src/db/base/entities
+  migrate:
+    directory: ./api
+    script: DATABASE_URL=sqlite:./db.sqlite?mode=rwc sea-orm-cli migrate refresh
+
+  

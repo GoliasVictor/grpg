@@ -45,14 +45,14 @@ pub struct ColumnDefinition {
     pub filter: ColumnFilter,
 }
 
-#[derive(Deserialize, Serialize, ToSchema, Clone)]
+#[derive(Deserialize, Default, Serialize, ToSchema, Clone)]
 pub struct TableDefinition {
     pub label: String,
     pub filter: Filter,
     pub columns: Vec<ColumnDefinition>,
 }
 
-#[derive(Clone, Deserialize, Serialize, ToSchema)]
+#[derive(Clone, Deserialize, Serialize, ToSchema, Default)]
 pub struct Filter {
     pub node_id: Option<i32>,
     pub predicate: Option<i32>,

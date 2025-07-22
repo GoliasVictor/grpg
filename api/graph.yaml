@@ -1,0 +1,61 @@
+settings:
+  2:
+    tables: {}
+    user_id: 1
+    name: Default Settings
+  4:
+    tables: {}
+    user_id: 1
+    name: feijao
+  3:
+    tables: {}
+    user_id: 1
+    name: Default Settings
+  1:
+    tables:
+      3:
+        label: Filhos
+        filter:
+          node_id: null
+          predicate: 1
+          direction: in
+        columns:
+        - id: 1
+          filter:
+            direction: in
+            predicate_id: 1
+      2:
+        label: Pais
+        filter:
+          node_id: null
+          predicate: 1
+          direction: out
+        columns:
+        - id: 1
+          filter:
+            direction: out
+            predicate_id: 1
+      1:
+        label: Todos
+        filter:
+          node_id: null
+          predicate: null
+          direction: null
+        columns:
+        - id: 1
+          filter:
+            direction: out
+            predicate_id: 1
+        - id: 2
+          filter:
+            direction: in
+            predicate_id: 1
+    user_id: 1
+    name: Default Settings
+  5:
+    tables: {}
+    user_id: 1
+    name: asdas
+users:
+- id: 1
+  name: carlim
