@@ -7,3 +7,9 @@ services:
     volumes:
       - ./api/demo_db/:/database
     restart: unless-stopped
+  whodb:
+    image: clidey/whodb
+    volumes:  
+       - ./api/db.sqlite:/db/db.sqlite
+    ports:
+      - "8080:8080"

@@ -2,6 +2,7 @@ mod setting_manager;
 mod user_settings_manager;
 mod tables;
 mod settings;
+mod entities;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
