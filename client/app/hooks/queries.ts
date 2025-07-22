@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import createClient from "openapi-fetch";
 import type { components, paths } from "~/lib/api/specs";
+import NodesService from "~/lib/services/nodes-service";
 
 export const client = createClient<paths>({ baseUrl: import.meta.env.VITE_API_URL });
 
@@ -11,7 +12,7 @@ type Filter = {
   anotherNode: number | null;
 }
 export const setting_id = 1;
-const QueriesKeys = {
+export const QueriesKeys = {
   nodes: ['nodes'],
   predicates: ['predicates'],
   table: (tableId: number) => ['table', { tableId }],
@@ -45,47 +46,6 @@ export function usePredicateQuery() {
   };
 }
 
-export function useNodesQuery({subscribed} : {subscribed?: boolean} = { }) {
-  const query = useQuery({
-    queryKey:  QueriesKeys.nodes,
-    queryFn: async () => (await client.GET("/settings/{setting_id}/node", {
-      params: {
-        path: {
-           setting_id
-        }
-      }
-    }))?.data,
-    staleTime: Infinity,
-    subscribed: subscribed,
-  })
-  return {
-    ...query,
-    nodes: query.data || [],
-    getNode: (id: number) => {
-      return query.data?.find((n) => n.node_id === id);
-    }
-  }
-}
-
-
-export function useOneNodeQuery(id : number) {
-  return useQuery({
-    queryKey: QueriesKeys.nodes,
-    queryFn: async () => (await client.GET("/settings/{setting_id}/node", {
-      params: {
-        path: {
-           setting_id
-        }
-      }
-    }))?.data,
-    staleTime: Infinity,
-    select: (data) => {
-      return data?.find((n: { node_id: number }) => n.node_id === id);
-    }
-  })
-
-
-}
 // export function useTableInOutQuery(isIn: boolean, nodeId: number) {
 //   const query = useQuery({
 //     queryKey: QueriesKeys.table(isIn, nodeId),
@@ -118,77 +78,6 @@ export function useTableQuery(tableId: number) {
     placeholderData: keepPreviousData,
     // refetchInterval: 1500,
   })
-}
-type Node = {
-  node_id: number;
-  label: string;
-}
-export function useNodesUpdateMutation() {
-  const queryClient = useQueryClient();
-  const mutatation = useMutation({
-    mutationFn: async (data: { nodeId: number, label: string }) => {
-      queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
-      await client.PUT("/settings/{setting_id}/node/{node_id}", {
-        params: {
-          path: {
-            setting_id: setting_id,
-            node_id: data.nodeId
-          },
-          query: { label: data.label }
-        }
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueriesKeys.nodes });
-    },
-  })
-  return mutatation
-}
-
-export function useNodesCreateMutation() {
-  const queryClient = useQueryClient();
-  const mutatation = useMutation({
-    mutationFn: async (data: { label: string }) => {
-      queryClient.cancelQueries({ queryKey: QueriesKeys.nodes });
-      await client.POST("/settings/{setting_id}/node", {
-        params: {
-          path: {
-            setting_id
-          }
-        },
-        body: data
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueriesKeys.nodes });
-      queryClient.invalidateQueries({ queryKey: QueriesKeys.homeTable });
-      queryClient.invalidateQueries({ queryKey: QueriesKeys.AnyfullTable });
-    },
-  })
-  return mutatation
-}
-
-export function useNodesDeleteMutation() {
-  const queryClient = useQueryClient();
-  const mutatation = useMutation({
-    mutationFn: async (data: { nodeId: number }) => {
-      queryClient.cancelQueries({ queryKey: QueriesKeys.nodes });
-      await client.DELETE("/settings/{setting_id}/node/{node_id}", {
-        params: {
-          path: {
-            setting_id: setting_id,
-            node_id: data.nodeId
-          }
-        }
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueriesKeys.nodes });
-      queryClient.invalidateQueries({ queryKey: QueriesKeys.homeTable });
-      queryClient.invalidateQueries({ queryKey: QueriesKeys.AnyfullTable });
-    }
-  })
-  return mutatation
 }
 
 export function useTripleCreateMutation() {

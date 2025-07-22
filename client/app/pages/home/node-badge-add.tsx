@@ -16,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover"
-import { useNodesQuery } from "~/hooks/queries"
+import { useNodesQuery } from "~/hooks/queries/nodes-queries"
 import { memo, useMemo } from "react"
 
 

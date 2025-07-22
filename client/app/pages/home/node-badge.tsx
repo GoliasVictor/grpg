@@ -1,7 +1,7 @@
 import { memo, useState } from "react";
 import { Input } from "~/components/ui/input";
-import { client, useNodesQuery, useNodesUpdateMutation } from "~/hooks/queries";
-
+import { client} from "~/hooks/queries";
+import { useNodesQuery, useNodesUpdateMutation } from "~/hooks/queries/nodes-queries";
 const NodeBadge = memo(function ({
   nodeId,
 }: {

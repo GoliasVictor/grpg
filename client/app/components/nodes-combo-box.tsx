@@ -1,6 +1,5 @@
 import { ComboBox } from "~/components/combo-box";
-import { useNodesQuery, usePredicateQuery } from "~/hooks/queries";
-
+import { useNodesQuery } from "~/hooks/queries/nodes-queries";
 type Props = {
   value: number | null,
   onChange: (value: number | null) => void,
