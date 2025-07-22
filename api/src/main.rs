@@ -22,10 +22,10 @@ impl AppState {
     fn establish_connection(&self) -> Connection {
         Connection::new(&self.db).unwrap()
     }
-    pub fn graph(&self, setting_id: i32) -> GraphManager {
+    pub fn graph(&self, workspace_id: i32) -> GraphManager {
         GraphManager {
             conn: self.establish_connection(),
-            setting: setting_id
+            workspace: workspace_id
         }
     }
 }
@@ -64,9 +64,9 @@ async fn main() -> Result<(), impl Error> {
                     .service(endpoints::users::post_user)
                     .service(endpoints::users::get_users)
                     .service(endpoints::users::get_user_by_id)
-                    .service(endpoints::settings::post_setting)
-                    .service(endpoints::settings::get_settings)
-                    .service(endpoints::settings::get_setting_by_id)
+                    .service(endpoints::workspaces::post_workspace)
+                    .service(endpoints::workspaces::get_workspaces)
+                    .service(endpoints::workspaces::get_workspace_by_id)
                     .service(endpoints::predicates::get_predicates)
                     .service(endpoints::predicates::post_predicate)
                     .service(endpoints::nodes::post_node)

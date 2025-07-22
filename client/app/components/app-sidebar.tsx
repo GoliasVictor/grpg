@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar"
-import { client, setting_id, useTableCreateMutation, useTableDeleteMutation, useTablesQuery, useTableUpdateMutation } from "~/hooks/queries";
+import { client, workspace_id, useTableCreateMutation, useTableDeleteMutation, useTablesQuery, useTableUpdateMutation } from "~/hooks/queries";
 import { Link, useLocation } from "react-router";
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -33,10 +33,10 @@ const SideBarItem = memo(function SideBarItem({ label, id, isActive }: {
     tableUpdateMutation.mutate({
       tableId: id,
       def: {
-        ...(await client.GET("/settings/{setting_id}/table/{id}", {
+        ...(await client.GET("/workspaces/{workspace_id}/table/{id}", {
           params: {
             path: {
-              setting_id: setting_id,
+              workspace_id: workspace_id,
               id: id
             }
           }

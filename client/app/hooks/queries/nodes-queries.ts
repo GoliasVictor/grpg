@@ -2,13 +2,13 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import createClient from "openapi-fetch";
 import type { components, paths } from "~/lib/api/specs";
 import NodesService from "~/lib/services/nodes-service";
-import { setting_id, QueriesKeys } from "../queries";
+import { workspace_id, QueriesKeys } from "../queries";
 
 export function useNodesQuery({ subscribed }: { subscribed?: boolean } = {}) {
   const nodesService = new NodesService();
   const query = useQuery({
     queryKey:  QueriesKeys.nodes,
-    queryFn: async () => await nodesService.getNodes(setting_id),
+    queryFn: async () => await nodesService.getNodes(workspace_id),
     staleTime: Infinity,
     subscribed: subscribed,
   })
@@ -25,7 +25,7 @@ export function useOneNodeQuery(id: number) {
   const nodesService = new NodesService();
   return useQuery({
     queryKey: QueriesKeys.nodes,
-    queryFn: async () => await nodesService.getNodes(setting_id),
+    queryFn: async () => await nodesService.getNodes(workspace_id),
     staleTime: Infinity,
     select: (data) => {
       return data?.find((n: { node_id: number }) => n.node_id === id);
@@ -39,7 +39,7 @@ export function useNodesUpdateMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { nodeId: number, label: string }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
-      await nodesService.updateNode(setting_id, {
+      await nodesService.updateNode(workspace_id, {
         node_id: data.nodeId,
         label: data.label
       });
@@ -57,7 +57,7 @@ export function useNodesCreateMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { label: string }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.nodes });
-      await nodesService.createNode(setting_id, {
+      await nodesService.createNode(workspace_id, {
         label: data.label
       });
     },
@@ -76,7 +76,7 @@ export function useNodesDeleteMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { nodeId: number }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.nodes });
-      nodesService.deleteNode(setting_id, data.nodeId);
+      nodesService.deleteNode(workspace_id, data.nodeId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QueriesKeys.nodes });

@@ -8,5 +8,9 @@ scripts:
   migrate:
     directory: ./api
     script: DATABASE_URL=sqlite:./db.sqlite?mode=rwc sea-orm-cli migrate refresh
-
+  client-specs:
+    directory: ./client
+    script: |
+      curl http://localhost:8000/api-docs/openapi2.json >| ./app/lib/api/specs.json
+      npm run generate-specs 
   

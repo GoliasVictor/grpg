@@ -5,4 +5,4 @@ pub mod triples;
 pub mod table;
 pub mod hooks;
 pub mod users;
-pub mod settings;
+pub mod workspaces;

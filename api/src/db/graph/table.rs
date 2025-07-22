@@ -16,8 +16,8 @@ pub use crate::db::{
 };
 
 use crate::db::models::Filter;
-pub async fn filter_values( conn: &Connection<'_>, setting: i32, filter: Filter) -> Vec<i32> {
-   let mut params = vec!(("setting", Value::Int64(setting as i64)));
+pub async fn filter_values( conn: &Connection<'_>, workspace: i32, filter: Filter) -> Vec<i32> {
+   let mut params = vec!(("workspace", Value::Int64(workspace as i64)));
 
     let triple_str = if let Some(pid) = filter.predicate {
         params.push(("pid", Value::Int64(pid as i64)));
@@ -34,9 +34,9 @@ pub async fn filter_values( conn: &Connection<'_>, setting: i32, filter: Filter)
 
     let node_str = if let Some(node_id) = filter.node_id {
         params.push(("node_id", Value::Int64(node_id as i64)));
-        "(:Node { setting: $setting, id: $node_id })"
+        "(:Node { workspace: $workspace, id: $node_id })"
     } else {
-        "(:Node { setting: $setting })"
+        "(:Node { workspace: $workspace })"
     };
     let x =  if filter.direction.is_none()  && filter.predicate.is_none() {
         "".to_string()
@@ -45,7 +45,7 @@ pub async fn filter_values( conn: &Connection<'_>, setting: i32, filter: Filter)
     };
 
     let query = format!(
-        "MATCH (n:Node {{setting: $setting}}) {} RETURN DISTINCT n.id AS id, n.label as label;",
+        "MATCH (n:Node {{workspace: $workspace}}) {} RETURN DISTINCT n.id AS id, n.label as label;",
         x
     );
     let result = conn.execute(&mut conn.prepare(&query).unwrap(), params).unwrap();
@@ -58,8 +58,8 @@ pub async fn filter_values( conn: &Connection<'_>, setting: i32, filter: Filter)
     row.sort();
     row
 }
-pub async fn table_rows(conn: &Connection<'_>, setting: i32, table_def: TableDefinition) -> Vec<RowResponse> {
-    let nodes_id = filter_values(&conn, setting, table_def.filter).await;
+pub async fn table_rows(conn: &Connection<'_>, workspace: i32, table_def: TableDefinition) -> Vec<RowResponse> {
+    let nodes_id = filter_values(&conn, workspace, table_def.filter).await;
     if nodes_id.is_empty() {
         return Vec::<RowResponse>::new();
     }
@@ -77,21 +77,21 @@ pub async fn table_rows(conn: &Connection<'_>, setting: i32, table_def: TableDef
     }
 
     let query = r#"
-        MATCH (c:Node {setting: $setting})-[r]->(a {setting: $setting})
+        MATCH (c:Node {workspace: $workspace})-[r]->(a {workspace: $workspace})
         WHERE r.id in $out_ids and c.id in $nids
         RETURN c.id as rnid, a.id as nid, r.id as pid, 'out' as direction
         UNION ALL
-        MATCH (c:Node {setting: $setting})<-[r]-(a {setting: $setting})
+        MATCH (c:Node {workspace: $workspace})<-[r]-(a {workspace: $workspace})
         WHERE r.id in $in_ids and c.id in $nids
         RETURN c.id as rnid, a.id as nid, r.id as pid, 'in' as direction
         UNION ALL
-        MATCH (c:Node {setting: $setting})-[r]-(a {setting: $setting})
+        MATCH (c:Node {workspace: $workspace})-[r]-(a {workspace: $workspace})
         WHERE r.id in $any_ids and c.id in $nids
         RETURN c.id as rnid, a.id as nid, r.id as pid, 'any' as direction
     "#;
 
     let query_params = vec!(
-        ("setting", Value::Int64(setting as i64)),
+        ("workspace", Value::Int64(workspace as i64)),
         ("nids",    Value::List(LogicalType::Int64, nodes_id.iter().map(|&id| Value::Int64(id as i64)).collect())),
         ("out_ids", Value::List(LogicalType::Int64, out_ids.iter().map(|&id| Value::Int64(id as i64)).collect())),
         ("in_ids",  Value::List(LogicalType::Int64, in_ids.iter().map(|&id| Value::Int64(id as i64)).collect())),

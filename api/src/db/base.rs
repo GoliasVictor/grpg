@@ -1,7 +1,7 @@
-mod setting_manager;
-mod user_settings_manager;
+mod workspace_manager;
+mod user_workspaces_manager;
 mod tables;
-mod settings;
+mod workspaces;
 mod entities;
 mod users;
 use std::collections::HashMap;
@@ -12,14 +12,14 @@ use crate::db::models::{
     UserData
 };
 use crate::db::base::{
-    settings::get_setting,
+    workspaces::get_workspace,
     users::{
         add_user,
         get_users,
         get_user
     },
-    setting_manager::SettingManager,
-    user_settings_manager::UserSettingsManager
+    workspace_manager::WorkspaceManager,
+    user_workspaces_manager::UserworkspacesManager
 };
 use futures::executor::block_on;
 use sea_orm::Database;
@@ -27,7 +27,7 @@ use sea_orm::DatabaseConnection;
 type Tables = HashMap<i32, TableDefinition>;
 
 #[derive(Deserialize, Serialize)]
-pub struct SettingData {
+pub struct WorkspaceData {
     pub tables: Tables,
     pub user_id: i32,
     pub name: String
@@ -35,7 +35,7 @@ pub struct SettingData {
 
 #[derive(Deserialize, Serialize)]
 struct StoreData {
-    settings : HashMap<i32, SettingData>,
+    workspaces : HashMap<i32, WorkspaceData>,
     users: Vec<UserData>
 }
 
@@ -47,24 +47,24 @@ impl Store {
             Database::connect(DATABASE_URL).await.unwrap()
         }))
     }
-    pub fn conn(&self, setting: i32) -> SettingManager {
-        SettingManager {
+    pub fn conn(&self, workspace: i32) -> WorkspaceManager {
+        WorkspaceManager {
             store: self,
-            setting
+            workspace
         }
     }
     pub fn reldb_conn(&self) -> &DatabaseConnection {
         &self.1
     }
-    pub fn user_settings(&self, user_id: i32) -> UserSettingsManager {
-        UserSettingsManager {
+    pub fn user_workspaces(&self, user_id: i32) -> UserworkspacesManager {
+        UserworkspacesManager {
             store: self,
             user_id
         }
     }
 
-    pub fn get_setting(&self, setting_id: i32) -> Option<SettingData> {
-        get_setting(self, setting_id)
+    pub fn get_workspace(&self, workspace_id: i32) -> Option<WorkspaceData> {
+        get_workspace(self, workspace_id)
     }
 
     pub fn add_user(&self, name: String) -> i32 {

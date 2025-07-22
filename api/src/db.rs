@@ -88,8 +88,8 @@ impl ConnectionUtil for Connection<'_> {
 }
 pub fn create_db(conn: &Connection) {
     let _ = conn.query(
-        "CREATE NODE TABLE IF NOT EXISTS Node(id SERIAL, setting INT, label STRING, __id SERIAL, PRIMARY KEY(__id) );
-        CREATE NODE TABLE IF NOT EXISTS Predicate(id SERIAL, setting INT, label STRING, __id SERIAL, PRIMARY KEY (__id));
+        "CREATE NODE TABLE IF NOT EXISTS Node(id SERIAL, workspace INT, label STRING, __id SERIAL, PRIMARY KEY(__id) );
+        CREATE NODE TABLE IF NOT EXISTS Predicate(id SERIAL, workspace INT, label STRING, __id SERIAL, PRIMARY KEY (__id));
         CREATE REL TABLE IF NOT EXISTS Triple(FROM Node TO Node, id INT64);"
     ).unwrap();
 }

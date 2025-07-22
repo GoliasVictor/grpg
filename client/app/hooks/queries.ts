@@ -11,7 +11,7 @@ type Filter = {
   direction: "in" | "out" | "any";
   anotherNode: number | null;
 }
-export const setting_id = 1;
+export const workspace_id = 1;
 export const QueriesKeys = {
   nodes: ['nodes'],
   predicates: ['predicates'],
@@ -27,10 +27,10 @@ export const QueriesKeys = {
 export function usePredicateQuery() {
   const predicatesQuery = useQuery({
     queryKey: QueriesKeys.predicates,
-    queryFn: async () => (await client.GET("/settings/{setting_id}/predicates", {
+    queryFn: async () => (await client.GET("/workspaces/{workspace_id}/predicates", {
       params: {
         path: {
-           setting_id
+           workspace_id
         }
       }
     }))?.data,
@@ -65,10 +65,10 @@ export function useTableQuery(tableId: number) {
   return useQuery({
     queryKey: QueriesKeys.fullTable(tableId),
     queryFn: async () => (
-      (await client.GET("/settings/{setting_id}/table/{id}", {
+      (await client.GET("/workspaces/{workspace_id}/table/{id}", {
         params: {
           path: {
-            setting_id: setting_id,
+            workspace_id: workspace_id,
             id: tableId
           }
         }
@@ -86,10 +86,10 @@ export function useTripleCreateMutation() {
     mutationFn: async (data: { objectId: number, predicateId: number, subjectId: number }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
       queryClient.cancelQueries({ queryKey: QueriesKeys.AnyfullTable });
-      await client.POST("/settings/{setting_id}/triple", {
+      await client.POST("/workspaces/{workspace_id}/triple", {
         params: {
           path: {
-            setting_id
+            workspace_id
           }
         },
         body: {
@@ -112,10 +112,10 @@ export function useTripleDeleteMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { objectId: number, predicateId: number, subjectId: number }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
-      await client.DELETE("/settings/{setting_id}/triple", {
+      await client.DELETE("/workspaces/{workspace_id}/triple", {
         params: {
           path: {
-            setting_id
+            workspace_id
           }
         },
         body: {
@@ -137,10 +137,10 @@ export function useTripleDeleteMutation() {
 export function useTablesQuery() {
   return useQuery({
     queryKey: QueriesKeys.anyTable,
-    queryFn: async () => (await client.GET("/settings/{setting_id}/tables", {
+    queryFn: async () => (await client.GET("/workspaces/{workspace_id}/tables", {
       params: {
         path: {
-          setting_id
+          workspace_id
         }
       },
     }))?.data,
@@ -151,10 +151,10 @@ export function useTablesQuery() {
 export function useTable(tableId: number) {
   return useQuery({
     queryKey: QueriesKeys.anyTable,
-    queryFn: async () => (await client.GET("/settings/{setting_id}/tables", {
+    queryFn: async () => (await client.GET("/workspaces/{workspace_id}/tables", {
       params: {
         path: {
-          setting_id
+          workspace_id
         }
       },
     }))?.data,
@@ -169,10 +169,10 @@ export function useTableUpdateMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { tableId : number,def: components["schemas"]["TableDefinition"] }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.homeTable });
-      await client.PUT("/settings/{setting_id}/table/{id}", {
+      await client.PUT("/workspaces/{workspace_id}/table/{id}", {
         params: {
           path: {
-            setting_id: setting_id,
+            workspace_id: workspace_id,
             id: data.tableId
           }
         },
@@ -192,10 +192,10 @@ export function useTableCreateMutation() {
   const mutatation = useMutation({
     mutationFn: async (data: { def: components["schemas"]["TableDefinition"] }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.anyTable });
-      await client.POST("/settings/{setting_id}/table", {
+      await client.POST("/workspaces/{workspace_id}/table", {
         params: {
           path: {
-            setting_id
+            workspace_id
           }
         },
         body: data.def
@@ -214,10 +214,10 @@ export function useTableDeleteMutation() {
   const mutation = useMutation({
     mutationFn: async (data: { tableId: number }) => {
       queryClient.cancelQueries({ queryKey: QueriesKeys.anyTable });
-      await client.DELETE("/settings/{setting_id}/tables/{id}", {
+      await client.DELETE("/workspaces/{workspace_id}/tables/{id}", {
         params: {
           path: {
-            setting_id: setting_id,
+            workspace_id: workspace_id,
             id: data.tableId
           }
         }
